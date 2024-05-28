@@ -8,7 +8,13 @@ from dotenv import load_dotenv
 from mysql.connector.pooling import MySQLConnectionPool
 app = FastAPI()
 
-load_dotenv()
+# load_dotenv()
+load_dotenv('/home/ubuntu/tdt/.env')
+
+print("DB_HOST:", os.getenv("DB_HOST"))
+print("DB_USER:", os.getenv("DB_USER"))
+print("DB_PASSWORD:", os.getenv("DB_PASSWORD"))
+print("DB_NAME:", os.getenv("DB_NAME"))
 
 pool_size_str = os.getenv("POOL_SIZE")
 if pool_size_str is None:
@@ -18,9 +24,9 @@ else:
 
 pool = MySQLConnectionPool(
     host=os.getenv("DB_HOST"),
-    database=os.getenv("DB_DATABASE"),
-    user=os.getenv("USER"),
-    password=os.getenv("PASSWORD"),
+    database=os.getenv("DB_NAME"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
     pool_size=pool_size)
 
 #*** Static Pages (Never Modify Code in this Block) ***
@@ -44,7 +50,7 @@ def get_attractions(page: int = 0, keyword: Optional[str] = Query(None)):
     if cursor is not None:
        try:
             offset = page * 12
-            query = "SELECT * FROM attraction"
+            query = "SELECT * FROM Attraction"
             params = []
             
             if keyword:
@@ -103,7 +109,7 @@ def get_attraction(attractionId: int):
     con, cursor = connectMySQLserver()
     if cursor is not None:
         try:
-            cursor.execute("SELECT * FROM attraction WHERE id = %s", (attractionId,))
+            cursor.execute("SELECT * FROM Attraction WHERE id = %s", (attractionId,))
             attraction = cursor.fetchone()
             
             if not attraction:
@@ -148,7 +154,7 @@ def get_mrts():
     con, cursor = connectMySQLserver()
     if cursor is not None:
         try:
-            cursor.execute("SELECT mrt, count(mrt) FROM attraction GROUP BY mrt ORDER BY count(mrt) DESC")
+            cursor.execute("SELECT mrt, count(mrt) FROM Attraction GROUP BY mrt ORDER BY count(mrt) DESC")
             rows = cursor.fetchall()
             mrts = []
             for row in rows:

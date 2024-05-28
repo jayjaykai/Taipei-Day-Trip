@@ -3,21 +3,28 @@ import json
 import mysql.connector
 from dotenv import load_dotenv
 
-load_dotenv()
+# load_dotenv()
+load_dotenv('/home/ubuntu/tdt/.env')
+
+print("DB_HOST:", os.getenv("DB_HOST"))
+print("DB_USER:", os.getenv("DB_USER"))
+print("DB_PASSWORD:", os.getenv("DB_PASSWORD"))
+print("DB_NAME:", os.getenv("DB_NAME"))
 
 # 連接 MySQL 數據庫
 db = mysql.connector.connect(
     host=os.getenv("DB_HOST"),
-    database=os.getenv("DB_DATABASE"),
-    user=os.getenv("USER"),
-    password=os.getenv("PASSWORD")
+    database=os.getenv("DB_NAME"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD")
 )
 
 
 cursor = db.cursor()
 
+json_file_path = '/home/ubuntu/tdt/data/taipei-attractions.json'
 # 讀取 JSON 資料
-with open('data\\taipei-attractions.json', 'r', encoding='utf-8') as file:
+with open(json_file_path, 'r', encoding='utf-8') as file:
     data = json.load(file)
 
 # 過濾圖片 URL，只保留 JPG/jpg 或 PNG/png 結尾的 URL
@@ -35,7 +42,7 @@ for attraction in data["result"]["results"]:
     # print(attraction["name"])
     # print(image_urls)
     cursor.execute("""
-    INSERT INTO attraction (id, name, category, description, address, transport, mrt, lat, lng, images, rate, avBegin, avEnd)
+    INSERT INTO Attraction (id, name, category, description, address, transport, mrt, lat, lng, images, rate, avBegin, avEnd)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """, (
         attraction["_id"],
