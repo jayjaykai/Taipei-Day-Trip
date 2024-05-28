@@ -140,7 +140,7 @@ def get_attraction(attractionId: int):
                 "images": images
             }
 
-            return result
+            return {"data": result}
         except mysql.connector.Error as err:
             return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
         finally:
