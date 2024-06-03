@@ -10,7 +10,7 @@ from mysql.connector.pooling import MySQLConnectionPool
 from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 
-app.mount("/home/ubuntu/tdt/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="/home/ubuntu/tdt/static/"), name="static")
 # load_dotenv()
 load_dotenv('/home/ubuntu/tdt/.env')
 # 設定可存取資源的來源端點
