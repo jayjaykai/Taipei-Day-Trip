@@ -5,12 +5,6 @@
     box-sizing: border-box;
 }
 
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-}
-
 html{
     height: 100%;
     overflow: auto;
@@ -78,16 +72,31 @@ h2 {
 }
 
 .nav div {
-    display: grid;
-    grid-template-columns: auto auto;
-    gap: 1px;
+    /* display: grid;
+    grid-template-columns: auto auto; */
+    display: flex;
+    justify-content: space-between;
+    height: 34px;
+    gap: 0px;
 }
 
-.nav a {
+.nav button{
+    background-color: #FFFFFF;
+    border: none;
+    color: #666666;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 13.3px;
+    text-align: left;
+    padding: 10px;
+    cursor: pointer;
+}
+
+/* .nav a {
     margin-left: 20px;
     text-decoration: none;
-    color: #000;
-}
+    color: inherit;
+} */
 
 .hero {
     grid-area: hero;
@@ -186,18 +195,30 @@ h2 {
     z-index: 1;
 }
 
-.left-arrow button, .right-arrow button {
+.left-arrow button {
     width: 32px;
     height: 32px;
     cursor: pointer;
+    border: none;
     background-position: center;
-    border-radius: 16px;
-    border: 1px solid gray;
+    background: url("left_arrow.png");
+    background-size: cover;
+    opacity: 0.50;
+}
+
+.right-arrow button {
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    border: none;
+    background-position: center;
+    background: url("right_arrow.png");
+    background-size: cover;
+    opacity: 0.50;
 }
 
 .left-arrow button:hover, .right-arrow button:hover {
-    background-color: white;
-    border: 1px solid black;
+    opacity: 1;
 }
 
 .left-arrow {
@@ -246,7 +267,7 @@ h2 {
 .List_spot {
     text-align: center;
     font-size: 1.2em;
-    border: 2px solid #a7a2a2;
+    border: 1px solid #E8E8E8;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -402,6 +423,9 @@ h2 {
     color: #ffffff;
     text-align: center;
     font-size: 1em;
+    display: grid;
+    place-items: center;
+    height: 104px;
 }
 
 @media(max-width:1200px) and (min-width:601px){
