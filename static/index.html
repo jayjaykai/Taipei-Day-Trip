@@ -1,11 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Index</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台北一日遊</title>
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <h2>登入會員帳號</h2>
+            <input type="text" placeholder="輸入電子信箱" required>
+            <input type="password" placeholder="輸入密碼" required>
+            <button>登入帳戶</button>
+            <p>還沒有帳戶？<a href="#">點此註冊</a></p>
+        </div>
+    </div>
+    <div class="container">
+        <div class="nav-container">
+            <nav class="nav">
+                <h2 class="header">台北一日遊</h2>
+                <div>
+                    <button>預定行程</button>
+                    <button id="loginButton">登入/註冊</button>
+                    <!-- <a href="#">預定行程</a>
+                    <a href="#login" id="loginButton">登入/註冊</a> -->
+                </div>
+            </nav>
+        </div>
+        <div class="hero">
+            <div class="hero-text">
+                <div class="slogan">
+                    <p class="main-title">輕鬆享受台北一日悠閒</p>
+                    <p class="subtitle">探索每個角落，體驗城市的深度旅遊行程</p>
+                </div>
+                <div class="search">
+                    <input type="text" id="mrtInput" placeholder="輸入景點名稱查詢">
+                    <button onclick="searchByMRT()"></button>
+                </div>
+            </div>
+        </div>
+        <div class="list-bar">
+            <div class="left-arrow">
+                <button onclick="shiftLeft()"></button>
+            </div>
+            <div class="list-mrts" id="list-mrts">
+
+            </div>
+            <div class="right-arrow">
+                <button onclick="shiftRight()"></button>
+            </div>
+        </div>
+        <main class="main" id="spot_images">
+        </main>
+        <footer class="footer">COPYRIGHT © 2021 台北一日遊</footer>
+    </div>
+    <script src="/static/scripts.js" defer></script>
 </body>
 </html>

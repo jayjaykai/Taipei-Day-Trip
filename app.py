@@ -1,15 +1,32 @@
 from typing import Optional
 from fastapi import *
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 import mysql.connector
 from mysql.connector import Error
 import os
 from dotenv import load_dotenv
 from mysql.connector.pooling import MySQLConnectionPool
+from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 
-# load_dotenv()
-load_dotenv('/home/ubuntu/tdt/.env')
+app.mount("/static", StaticFiles(directory="static"), name="static")
+# app.mount("/static", StaticFiles(directory="/home/ubuntu/tdt/static"), name="static")
+load_dotenv()
+# load_dotenv('/home/ubuntu/tdt/.env')
+# 設定可存取資源的來源端點
+origins = [
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],  # 允許所有HTTP方法
+    allow_headers=["*"],  # 允許所有HTTP headers
+)
+
 
 print("DB_HOST:", os.getenv("DB_HOST"))
 print("DB_USER:", os.getenv("DB_USER"))
@@ -60,6 +77,7 @@ def get_attractions(page: int = 0, keyword: Optional[str] = Query(None)):
             query += " LIMIT %s OFFSET %s"
             params.extend([12, offset])
             
+            print(query)
             cursor.execute(query, tuple(params))
             attractions = cursor.fetchall()
             
