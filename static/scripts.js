@@ -34,11 +34,25 @@ async function getData() {
     }
 }
 
+function goToAttractionPage(element) {
+    const id = element.getAttribute('data-id');
+    window.location.href = `/attraction/${id}`;
+}
+
+function bookEvent() {
+    window.location.href = `/booking`;
+}
+
 function addContent(results) {
+    // console.log(results);
     let container = document.getElementById('spot_images');
     for (let i = 0; i < results.length; i++) {
         let itemContainer = document.createElement('div');
         itemContainer.className = 'List_spot';
+
+        // 添加 onclick 事件到每一個景點圖片中，使用id來帶入資料
+        itemContainer.setAttribute('data-id', results[i].id);
+        itemContainer.setAttribute('onclick', 'goToAttractionPage(this)');
 
         let imageContainer = document.createElement('div');
         imageContainer.className = 'image-container';
@@ -139,6 +153,7 @@ function getCssVariable(element, variable) {
     return getComputedStyle(element).getPropertyValue(variable);
 }
 
+// Left button
 function shiftLeft() {
     // const items = document.getElementById('list-mrts');
     // const itemWidth = items.children[0].offsetWidth;
@@ -149,8 +164,8 @@ function shiftLeft() {
     //         behavior: 'smooth'
     //     });
     // }
-    const items = document.getElementById('list-mrts');
-    const scrollWidth = parseInt(getCssVariable(document.documentElement, '--scroll-width'), 10);
+    let items = document.getElementById('list-mrts');
+    let scrollWidth = parseInt(getCssVariable(document.documentElement, '--scroll-width'), 10);
     if (currentIndex > 0) {
         currentIndex--;
         items.scrollBy({
@@ -160,6 +175,7 @@ function shiftLeft() {
     }
 }
 
+// Right button
 function shiftRight() {
     // const items = document.getElementById('list-mrts');
     // const itemCount = items.children.length;
@@ -177,8 +193,8 @@ function shiftRight() {
     //         behavior: 'smooth'
     //     });
     // }
-    const items = document.getElementById('list-mrts');
-    const scrollWidth = parseInt(getCssVariable(document.documentElement, '--scroll-width'), 10);
+    let items = document.getElementById('list-mrts');
+    let scrollWidth = parseInt(getCssVariable(document.documentElement, '--scroll-width'), 10);
     currentIndex++;
     items.scrollBy({
         left: scrollWidth,
@@ -188,28 +204,6 @@ function shiftRight() {
 
     getData();
     addMrtsList();
-
-    // 登入彈跳視窗ID資訊
-    const modal = document.getElementById('loginModal');
-    const loginButton = document.getElementById('loginButton');
-    const closeModal = document.getElementById('closeModal');
-
-    // 登入彈跳視窗顯示
-    loginButton.onclick = function() {
-        modal.style.display = 'block';
-    }
-
-    // 關閉登入彈跳視窗
-    closeModal.onclick = function() {
-        modal.style.display = 'none';
-    }
-
-    // 點擊彈跳視窗外部
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = 'none';
-        }
-    }
 
     window.addEventListener('scroll', () => {
         // console.log('scrolling...');
@@ -225,13 +219,12 @@ function shiftRight() {
         // }
 
         // 檢查特定元素是否進入視窗底部
-        const element = document.getElementById('spot_images');
+        let element = document.getElementById('spot_images');
         if (element) {
-            const rect = element.getBoundingClientRect();
-
+            let rect = element.getBoundingClientRect();
+            // console.log('rect.bottom: ' + rect.bottom);
+            // console.log('window.innerHeight: ' + window.innerHeight);
             if (rect.bottom <= window.innerHeight && !isLoading) {
-                // console.log('bottom reached');
-                // currentPage++;
                 getData();
             }
         }

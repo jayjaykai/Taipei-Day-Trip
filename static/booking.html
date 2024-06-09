@@ -4,8 +4,48 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Booking</title>
+  <link rel="stylesheet" href="/static/booking_styles.css">
 </head>
 <body>
-  
+  <div class="container">
+    <div class="nav-container">
+        <nav class="nav">
+          <h2 class="header">
+            <a href="/">台北一日遊</a>
+          </h2>
+          <div>
+              <button>預定行程</button>
+              <button id="loginButton">登入/註冊</button>
+          </div>
+        </nav>
+    </div>
+    <div class="travelInfo">
+      <p>您好，Yakko，待預訂的行程如下：</p>
+      <p>目前沒有任何待預訂的行程</p>
+    </div>
+    <hr class="hr1">
+    <div class="personInfo"></div>
+    <hr class="hr2">
+    <div class="creditCardInfo"></div>
+    <hr class="hr3">
+    <div class="confirm"></div>
+    <footer class="footer">COPYRIGHT © 2021 台北一日遊</footer>
+  </div>
+  <script src="/static/dialog_script.js" defer></script>
+  <script>
+    // JavaScript 檢查區域是否為空
+    document.addEventListener("DOMContentLoaded", function() {
+        var personInfo = document.querySelector(".personInfo").innerHTML.trim();
+        var creditCardInfo = document.querySelector(".creditCardInfo").innerHTML.trim();
+        var confirm = document.querySelector(".confirm").innerHTML.trim();
+
+        if (!personInfo && !creditCardInfo && !confirm) {
+            document.querySelector(".footer").classList.add("full-height-footer");
+            document.querySelector(".hr1").style.display = 'none';
+            document.querySelector(".hr2").style.display = 'none';
+            document.querySelector(".hr3").style.display = 'none';
+        }
+    });
+</script>
 </body>
 </html>
