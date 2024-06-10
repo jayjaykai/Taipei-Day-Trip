@@ -71,6 +71,11 @@ h2 {
     font-size: 30px;
 }
 
+.header a {
+    color: inherit; 
+    text-decoration: none;
+}
+
 .nav div {
     /* display: grid;
     grid-template-columns: auto auto; */

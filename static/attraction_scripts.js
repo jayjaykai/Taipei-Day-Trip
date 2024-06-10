@@ -124,10 +124,21 @@ function bookEvent() {
     window.location.href = `/booking`;
 }
 
+function updatePrice(radio) {
+    const priceSpan = document.getElementById('tour-price');
+    if (radio.id === 'morning') {
+        priceSpan.textContent = '2000';
+    } 
+    else{
+        priceSpan.textContent = '2500';
+    }
+}
+
 // // use another method
-// function updateContent() {
+// function updatePosition() {
 //     let spotPicDiv = document.getElementById('spot-image');
 //     spotPicDiv.src = attraction.data.images[currentIndex];
+//     updateDots();
 // }
 
 // function preImage() {
@@ -155,9 +166,12 @@ function bookEvent() {
 // }
 
 
-const attractionId = getQueryParams();
+let attractionId = getQueryParams();
 // console.log(attractionId);
 
 if (attractionId) {
     fetchAttractionDetails(attractionId);
 }
+
+let morningRadio = document.getElementById('morning');
+updatePrice(morningRadio);

@@ -66,3 +66,41 @@ document.getElementById('loginButton').addEventListener('click', function() {
         document.getElementById('loginModal').showModal();
     }
 });
+
+async function login() { 
+    let email = document.getElementById('email').value;
+    let password = document.getElementById('password').value;
+
+    if (!email || !password) {
+        alert('請輸入電子信箱和密碼');
+        return;
+    }
+
+    let userIfo = {
+        email: email,
+        password: password
+    };
+
+    try {
+        let response = await fetch('http://127.0.0.1:8000/api/user/auth', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userIfo)
+        });
+        let result = await response.json();
+        if (!response.ok) {
+            console.error('HTTP error', response.status);
+            alert(result.message);
+            return;
+        }
+        let token = result.token;
+        console.log(token);
+        document.getElementById('loginModal').close();
+    } 
+    catch (error) {
+        console.error('Error:', error);
+        alert('伺服器內部錯誤，請聯絡系統管理員');
+    }
+}

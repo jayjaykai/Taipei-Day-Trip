@@ -39,12 +39,12 @@
             </div>
             <div class="form-group-time">
               <label class="travel-time-label">選擇時間： </label>
-              <input type="radio" name="travel-time" id="morning" value="上半天" required>
+              <input type="radio" name="travel-time" id="morning" value="上半天" onclick="updatePrice(this)" checked required>
               <label for="morning" class="morning-label">上半天</label>
-              <input type="radio" name="travel-time" id="afternoon" value="下半天" required>
+              <input type="radio" name="travel-time" id="afternoon" value="下半天" onclick="updatePrice(this)" required>
               <label for="afternoon" class="afternoon-label">下半天</label>
             </div>
-            <div>導覽費用：<span>新台幣 2000 元</span></div>
+            <div>導覽費用： 新台幣<span id="tour-price"></span>元</div>
             <button>開始預約行程</button>
           </div>
       </div>
