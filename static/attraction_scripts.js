@@ -20,6 +20,11 @@ async function fetchAttractionDetails(id) {
     let result = await response.json();
     attraction = result;
 
+    if (!response.ok) {
+        console.error('HTTP error', response.status);
+        alert(result.message);
+        return;
+    }
     // console.log(attraction);
     // let spotPicDiv = document.getElementById('spot-image');
     // spotPicDiv.src = attraction.data.images[currentIndex];
