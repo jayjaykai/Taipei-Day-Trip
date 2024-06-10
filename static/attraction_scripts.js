@@ -20,7 +20,7 @@ async function fetchAttractionDetails(id) {
     let result = await response.json();
     attraction = result;
 
-    console.log(attraction);
+    // console.log(attraction);
     // let spotPicDiv = document.getElementById('spot-image');
     // spotPicDiv.src = attraction.data.images[currentIndex];
     imageLen = attraction.data.images.length;
@@ -101,7 +101,7 @@ function nextImg() {
 }
 
 function createDots(num) {
-    console.log(num);
+    // console.log(num);
     for (let i = 0; i < num; i++) {
         const dot = document.createElement('span');
         dot.classList.add('dot');
