@@ -1,0 +1,272 @@
+* {
+    font-family: "Noto Sans TC", sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html{
+    height: 100%;
+    overflow: auto;
+}
+
+.container {
+    display: grid;
+    grid-template-areas: 
+        "travelInfo"
+        "hr1"
+        "personInfo"
+        "hr2"
+        "creditCardInfo"
+        "hr3"
+        "confirm"
+        "footer";
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(8, auto);
+    padding-top: 55px;
+    min-height: 100vh;
+    /* For login modal */
+    position: relative;
+    z-index: 0;
+}
+
+.nav-container {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background-color: #ffffff;
+    z-index: 1000;
+    padding: 10px 0;
+}
+
+.nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 10px;
+}
+
+h2 {
+    color: #008080;
+    font-size: 30px;
+}
+
+.header a {
+    color: inherit; 
+    text-decoration: none;
+}
+
+.nav div {
+    /* display: grid;
+    grid-template-columns: auto auto; */
+    display: flex;
+    justify-content: space-between;
+    height: 34px;
+    gap: 0px;
+}
+
+.nav button{
+    background-color: #FFFFFF;
+    border: none;
+    color: #666666;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 13.3px;
+    text-align: left;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.travelInfo, .personInfo, .creditCardInfo, .confirm {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+}
+
+.travelInfo{
+    grid-area: travelInfo;
+    padding: 20px;
+}
+
+.personInfo{
+    grid-area: personInfo;
+}
+
+.creditCardInfo{
+    grid-area: creditCardInfo;
+}
+
+.confirm{
+    grid-area: confirm;
+}
+
+.footer {
+    grid-area: footer;
+    background-color: #757575;
+    padding: 20px;
+    color: #ffffff;
+    text-align: center;
+    font-size: 1em;
+    display: grid;
+    place-items: center;
+    height: 104px;
+}
+
+.full-height-footer {
+    grid-area: footer;
+    height: 865px;
+    display: flex;
+    align-items: first baseline;
+    justify-content: center;
+    text-align: center;
+    font-size: 1em;
+}
+
+.hr1 { grid-area: hr1; }
+.hr2 { grid-area: hr2; }
+.hr3 { grid-area: hr3; }
+
+hr {
+    grid-area: hr;
+    border: none;
+    max-width: 1200px;
+    border-top: 1px solid #ccc;
+    margin: 20px auto;
+    width: 100%;
+}
+
+.modal {
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: transparent;
+    border: none;
+    margin: 0 auto;
+}
+
+.modal::backdrop {
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+    max-width: 340px;
+    height: 275px;
+    background-color: #fff;
+    margin: 15% auto;
+    padding: 20px;
+    /* border: 1px solid #888; */
+    width: 80%;
+    text-align: center;
+    box-shadow: none;
+    /* box-shadow: 0 4px 8px rgba(0,0,0,0.2); */
+    animation: fadeIn 0.5s; /* 淡入效果 */
+    position: relative;
+    margin-top: 80px;
+    border-radius: 10px ;
+}
+
+.modal-content::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 10px;
+    box-shadow: none; 
+    background-color: #008080; 
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    font-size: 24px;
+    color: #333;
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.modal-content button {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 5px;
+    background-color: #008080;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.modal-content button:hover {
+    background-color: #009090;
+}
+
+.modal-content p {
+    font-size: 14px;
+}
+
+.modal-content p a {
+    color: #008080;
+}
+
+.modal-content p a:hover {
+    text-decoration: underline;
+}
+
+@media(max-width:1200px) and (min-width:601px){
+    .main {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .List_spot {
+        width: 100%;
+        height: 100%;
+    }
+}
+
+@media(max-width:600px){
+    .main {
+        grid-template-columns: 1fr
+    }
+    .List_spot {
+        width: 100%;
+        height: 100%;
+    }
+    .search {
+        width: 285px;
+        height: 46px;
+    }
+}

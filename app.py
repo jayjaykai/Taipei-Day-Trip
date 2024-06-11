@@ -1,13 +1,23 @@
-from typing import Optional
+from typing import Optional, Union
 from fastapi import *
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.security import OAuth2PasswordBearer
 from fastapi.staticfiles import StaticFiles
+from jose import ExpiredSignatureError, JWTError
 import mysql.connector
 from mysql.connector import Error
 import os
 from dotenv import load_dotenv
 from mysql.connector.pooling import MySQLConnectionPool
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+import hashlib
+import jwt
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
+from datetime import datetime, timedelta, timezone
+
+secret_key="dfjewkjfejwfjiewfjoewjfioewjf"
+
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -45,6 +55,122 @@ pool = MySQLConnectionPool(
     user=os.getenv("DB_USER"),
     password=os.getenv("DB_PASSWORD"),
     pool_size=pool_size)
+
+# JWT setting
+SECRET_KEY = "sfegrehrtwerwet54h5jtyfgdfgergerg"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_DAYS = 7
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/user/auth")
+
+# 自定義User資料 model
+class User(BaseModel):
+    email: str
+    password: str
+    
+class SignOnInfo(BaseModel):
+    name: str
+    email: str
+    password: str
+
+class TokenData(BaseModel):
+    userID: str
+    name: str
+    email: str    
+
+def hash_password(text):
+    mode = hashlib.sha256()
+    mode.update((text+secret_key).encode())
+    return mode.hexdigest()
+
+def create_access_token(data: dict, expires_delta: timedelta):
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + expires_delta
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def verify_jwt_token(token: str = Depends(oauth2_scheme))-> TokenData:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("userID")
+        username: str = payload.get("username")
+        email: str = payload.get("email")
+        if user_id is None:
+            raise credentials_exception
+        return TokenData(userID=user_id, name=username, email=email)
+    except ExpiredSignatureError:
+        raise credentials_exception
+    except InvalidTokenError:
+        raise credentials_exception
+    
+@app.put("/api/user/auth")
+async def login(user: User):
+    con, cursor = connectMySQLserver()
+    if cursor is not None:
+        try:
+            # print(user.email)
+            # print(user.password)
+            # print(hash_password(user.password))
+            cursor.execute("select id,name,email from User where email = %s and password = %s", (user.email, hash_password(user.password)))
+            data = cursor.fetchone()
+
+            if data:
+                print(f"User: {data[0]}")
+                print(f"User email: {user.email}")
+                access_token = create_access_token(
+                    data={"userID": str(data[0]), "username": data[1], "email": data[2]}, expires_delta = timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
+                )
+                return {"token": access_token}
+            else:
+                return JSONResponse(status_code=400, content={"error": True, "message": "登入失敗，帳號或密碼錯誤或其他原因"})
+        except Exception as err:
+            return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+        finally:
+            con.close()
+    else:
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+
+@app.post("/api/user")
+async def signOn(user: SignOnInfo):
+    con, cursor = connectMySQLserver()
+    if cursor is not None:
+        try:
+            print(user.name)
+            print(user.email)
+            print(user.password)
+            cursor.execute("select name from User where email = %s", (user.email,))
+            data = cursor.fetchone()
+            if data:
+                return JSONResponse(status_code=400, content={"error": True, "message": "註冊失敗，重複的 Email 或其他原因"})
+            else:
+                hashed_pwd = hash_password(user.password)
+                cursor.execute("insert into User(name, email, password) values(%s, %s, %s)", (user.name, user.email, hashed_pwd))
+                con.commit()
+                return JSONResponse(status_code=200, content={"ok": True})
+        except Exception as err:
+            return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+        finally:
+            con.close()
+    else:
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+
+@app.get("/api/user/auth")
+async def checkUser(token_data: TokenData = Depends(verify_jwt_token)) :
+    # if isinstance(token_data, FileResponse):
+    #     return token_data 
+    # print(token_data)
+    result = {
+                "id": token_data.userID,
+                "name": token_data.name,
+                "email": token_data.email
+             }
+
+    return {"data": result}
 
 #*** Static Pages (Never Modify Code in this Block) ***
 @app.get("/", include_in_schema=False)
@@ -115,7 +241,7 @@ def get_attractions(page: int = 0, keyword: Optional[str] = Query(None)):
                 })
             
             return {"nextPage": next_page, "data": result}
-       except mysql.connector.Error as err:
+       except Exception as err:
             return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
        finally:
             con.close()
@@ -159,7 +285,7 @@ def get_attraction(attractionId: int):
             }
 
             return {"data": result}
-        except mysql.connector.Error as err:
+        except Exception as err:
             return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
         finally:
             con.close()
@@ -179,7 +305,7 @@ def get_mrts():
                 if row[0] is not None:
                     mrts.append(row[0])
             return mrts
-        except mysql.connector.Error as err:
+        except Exception as err:
             return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
         finally:
             con.close()

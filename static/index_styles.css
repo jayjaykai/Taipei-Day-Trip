@@ -71,6 +71,11 @@ h2 {
     font-size: 30px;
 }
 
+.header a {
+    color: inherit; 
+    text-decoration: none;
+}
+
 .nav div {
     /* display: grid;
     grid-template-columns: auto auto; */
@@ -274,6 +279,7 @@ h2 {
     border-radius: 5px;
     width: 100%;
     height: 242px;
+    cursor: pointer;
     /* height: 100%; */
 }
 
@@ -313,107 +319,6 @@ h2 {
     padding: 0.5rem;
     font-size: 1rem;
     width: 100%;
-}
-
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.4);
-}
-
-.modal-content {
-    max-width: 340px;
-    height: 275px;
-    background-color: #fff;
-    margin: 15% auto;
-    padding: 20px;
-    /* border: 1px solid #888; */
-    width: 80%;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    animation: fadeIn 0.5s; /* 淡入效果 */
-    position: relative;
-    margin-top: 80px;
-    border-radius: 10px ;
-}
-
-.modal-content::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 10px; 
-    background-color: #008080; 
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-}
-
-.close:hover,
-.close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.modal-content h2 {
-    margin-top: 0;
-    font-size: 24px;
-    color: #333;
-}
-
-.modal-content input {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-
-.modal-content button {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: none;
-    border-radius: 5px;
-    background-color: #008080;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-.modal-content button:hover {
-    background-color: #009090;
-}
-
-.modal-content p {
-    font-size: 14px;
-}
-
-.modal-content p a {
-    color: #008080;
-}
-
-.modal-content p a:hover {
-    text-decoration: underline;
 }
 
 .footer {
