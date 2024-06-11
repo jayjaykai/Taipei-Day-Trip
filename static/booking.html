@@ -20,7 +20,7 @@
         </nav>
     </div>
     <div class="travelInfo">
-      <p>您好，Yakko，待預訂的行程如下：</p>
+      <p>您好，<span id="username">username</span>，待預訂的行程如下：</p>
       <p>目前沒有任何待預訂的行程</p>
     </div>
     <hr class="hr1">
@@ -32,20 +32,6 @@
     <footer class="footer">COPYRIGHT © 2021 台北一日遊</footer>
   </div>
   <script src="/static/dialog_script.js" defer></script>
-  <script>
-    // JavaScript 檢查區域是否為空
-    document.addEventListener("DOMContentLoaded", function() {
-        var personInfo = document.querySelector(".personInfo").innerHTML.trim();
-        var creditCardInfo = document.querySelector(".creditCardInfo").innerHTML.trim();
-        var confirm = document.querySelector(".confirm").innerHTML.trim();
-
-        if (!personInfo && !creditCardInfo && !confirm) {
-            document.querySelector(".footer").classList.add("full-height-footer");
-            document.querySelector(".hr1").style.display = 'none';
-            document.querySelector(".hr2").style.display = 'none';
-            document.querySelector(".hr3").style.display = 'none';
-        }
-    });
-</script>
+  <script src="/static/booking_script.js" defer></script>
 </body>
 </html>

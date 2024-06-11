@@ -39,10 +39,6 @@ function goToAttractionPage(element) {
     window.location.href = `/attraction/${id}`;
 }
 
-function bookEvent() {
-    window.location.href = `/booking`;
-}
-
 function addContent(results) {
     // console.log(results);
     let container = document.getElementById('spot_images');
