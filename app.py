@@ -77,6 +77,12 @@ class TokenData(BaseModel):
     name: str
     email: str    
 
+class BookingData(BaseModel):
+    attraction_id: int
+    date: Optional[str] = None
+    travel_time: str
+    tour_price: int
+
 def hash_password(text):
     mode = hashlib.sha256()
     mode.update((text+secret_key).encode())
@@ -89,24 +95,23 @@ def create_access_token(data: dict, expires_delta: timedelta):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def verify_jwt_token(token: str = Depends(oauth2_scheme))-> TokenData:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+def verify_jwt_token(token: str = Depends(oauth2_scheme))-> Union[TokenData, JSONResponse]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("userID")
         username: str = payload.get("username")
         email: str = payload.get("email")
-        if user_id is None:
-            raise credentials_exception
+        if user_id is None or username is None or email is None:
+            return JSONResponse(
+                status_code=403,
+                content={"error": True, "message": "未登入系統，拒絕存取"}
+            )
         return TokenData(userID=user_id, name=username, email=email)
-    except ExpiredSignatureError:
-        raise credentials_exception
-    except InvalidTokenError:
-        raise credentials_exception
+    except (ExpiredSignatureError, JWTError):
+        return JSONResponse(
+            status_code=403,
+            content={"error": True, "message": "未登入系統，拒絕存取"}
+        )
     
 @app.put("/api/user/auth")
 async def login(user: User):
@@ -171,6 +176,25 @@ async def checkUser(token_data: TokenData = Depends(verify_jwt_token)) :
              }
 
     return {"data": result}
+
+@app.post("/api/booking")
+async def bookEvent(booking_data: BookingData, token_data: TokenData = Depends(verify_jwt_token)):
+    con, cursor = connectMySQLserver()
+    if cursor is not None:
+        try: 
+            cursor.execute("insert into Booking(attractionId, date, timeSlot, price) values(%s, %s, %s, %s)", 
+                           (booking_data.attraction_id, 
+                            booking_data.date if booking_data.date else None, 
+                            booking_data.travel_time, 
+                            booking_data.tour_price))
+            con.commit()
+            return JSONResponse(status_code=200, content={"ok": True})
+        except Exception as err:
+            return JSONResponse(status_code=500, content={"error": True, "message": "建立失敗，輸入不正確或其他原因"})
+        finally:
+            con.close()
+    else:
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
 
 #*** Static Pages (Never Modify Code in this Block) ***
 @app.get("/", include_in_schema=False)

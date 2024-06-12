@@ -68,7 +68,7 @@ document.getElementById('loginButton').addEventListener('click', function() {
 });
 
 async function bookEvent() {
-    let token = sessionStorage.getItem('token');
+    let token = localStorage.getItem('token');
     if(!token){
         alert('請先登入會員帳戶');
         return;
@@ -117,7 +117,7 @@ async function login() {
             alert(result.message);
             return;
         }
-        sessionStorage.setItem('token', result.token);
+        localStorage.setItem('token', result.token);
 
         document.getElementById('email').value = '';
         document.getElementById('password').value = '';

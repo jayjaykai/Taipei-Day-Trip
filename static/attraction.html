@@ -35,7 +35,7 @@
             <p>以上此景點為中心的一日行程，帶您探索城市角落故事</p>
             <div class="form-group-day">
                 <label for="date">選擇日期：</label>
-                <input type="date" id="date" name="date" placeholder="yyyy/mm/dd">
+                <input type="date" id="date" name="date">
             </div>
             <div class="form-group-time">
               <label class="travel-time-label">選擇時間： </label>
@@ -45,7 +45,7 @@
               <label for="afternoon" class="afternoon-label">下半天</label>
             </div>
             <div>導覽費用： <span>新台幣<span id="tour-price"></span>元</span></div>
-            <button>開始預約行程</button>
+            <button onclick="reserveTravel()">開始預約行程</button>
           </div>
       </div>
     </div>

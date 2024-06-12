@@ -1,7 +1,7 @@
 // JavaScript 檢查區域是否為空
 document.addEventListener("DOMContentLoaded", function() {
     // 檢查 token 並調用 getUserData
-    let token = sessionStorage.getItem('token');
+    let token = localStorage.getItem('token');
     if (token) {
         getUserData();
     } else {
@@ -9,29 +9,21 @@ document.addEventListener("DOMContentLoaded", function() {
         window.location.href = `/`;
     }
 
-    var personInfo = document.querySelector(".personInfo").innerHTML.trim();
-    var creditCardInfo = document.querySelector(".creditCardInfo").innerHTML.trim();
-    var confirm = document.querySelector(".confirm").innerHTML.trim();
+    // var personInfo = document.querySelector(".personInfo").innerHTML.trim();
+    // var creditCardInfo = document.querySelector(".creditCardInfo").innerHTML.trim();
+    // var confirm = document.querySelector(".confirm").innerHTML.trim();
 
-    if (!personInfo && !creditCardInfo && !confirm) {
-        document.querySelector(".footer").classList.add("full-height-footer");
-        document.querySelector(".hr1").style.display = 'none';
-        document.querySelector(".hr2").style.display = 'none';
-        document.querySelector(".hr3").style.display = 'none';
-    }
+    // if (!personInfo && !creditCardInfo && !confirm) {
+    //     document.querySelector(".footer").classList.add("full-height-footer");
+    //     document.querySelector(".hr1").style.display = 'none';
+    //     document.querySelector(".hr2").style.display = 'none';
+    //     document.querySelector(".hr3").style.display = 'none';
+    // }
 });
-
-
-// document.addEventListener('DOMContentLoaded', (event) => {
-//     let token = sessionStorage.getItem('token');
-//     if(token){
-//         getUserData()
-//     }
-// });
 
 async function getUserData() { 
     try {
-        let token = sessionStorage.getItem('token');
+        let token = localStorage.getItem('token');
         if(!token){
             alert('請先登入會員帳戶');
             return;
