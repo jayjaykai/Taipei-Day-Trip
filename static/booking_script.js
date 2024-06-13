@@ -13,8 +13,8 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 async function execute(){
-    // getUserData()
     try{
+        // getUserData()
         let token = localStorage.getItem('token');
         let response = await fetch('http://127.0.0.1:8000/api/user/auth', {
             method: 'GET',
@@ -23,12 +23,12 @@ async function execute(){
                 'Authorization': `Bearer ${token}`
             }
         });
-        
+
         let result = await response.json();
         if (!response.ok){
             console.error('HTTP error', response.status);
             alert(result.message);
-            window.location.href = `/`;
+            return;
         }
 
         // console.log(result.data);

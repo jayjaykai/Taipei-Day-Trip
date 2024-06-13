@@ -80,10 +80,11 @@ async function bookEvent() {
             'Authorization': `Bearer ${token}`
         }
     });
-    
-    if (response.status === 403) {
-        alert('無效的憑證，請重新登入');
-        window.location.href = `/`;
+
+    if (!response.ok) {
+        let result = await response.json();
+        alert(result.message);
+        // window.location.href = `/`;
         return;
     }
     window.location.href = `/booking`;

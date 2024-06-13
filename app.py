@@ -95,7 +95,7 @@ def create_access_token(data: dict, expires_delta: timedelta):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def verify_jwt_token(token: str = Depends(oauth2_scheme))-> Union[TokenData, JSONResponse]:
+def verify_jwt_token(token: str = Depends(oauth2_scheme)) -> Union[TokenData, JSONResponse]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("userID")
@@ -103,15 +103,44 @@ def verify_jwt_token(token: str = Depends(oauth2_scheme))-> Union[TokenData, JSO
         email: str = payload.get("email")
         if user_id is None or username is None or email is None:
             return JSONResponse(
-                status_code=403,
+                status_code=status.HTTP_403_FORBIDDEN,
                 content={"error": True, "message": "未登入系統，拒絕存取"}
             )
         return TokenData(userID=user_id, name=username, email=email)
-    except (ExpiredSignatureError, JWTError):
+    except ExpiredSignatureError:
         return JSONResponse(
-            status_code=403,
+            status_code=status.HTTP_403_FORBIDDEN,
             content={"error": True, "message": "未登入系統，拒絕存取"}
         )
+    except JWTError:
+        return JSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={"error": True, "message": "未登入系統，拒絕存取"}
+        )
+    except Exception as e:
+        return JSONResponse(
+            # status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            # content={"error": True, "message": f"Unexpected error: {str(e)}"}
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={"error": True, "message": "未登入系統，拒絕存取"}
+        )
+
+# def verify_jwt_token(token: str = Depends(oauth2_scheme)) -> TokenData:
+#     credentials_exception = HTTPException(
+#         status_code=status.HTTP_403_FORBIDDEN,
+#         detail="未登入系統，拒絕存取",
+#         headers={"WWW-Authenticate": "Bearer"},
+#     )
+#     try:
+#         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+#         user_id: str = payload.get("userID")
+#         username: str = payload.get("username")
+#         email: str = payload.get("email")
+#         if user_id is None or username is None or email is None:
+#             raise credentials_exception
+#         return TokenData(userID=user_id, name=username, email=email)
+#     except (ExpiredSignatureError, JWTError):
+#         raise credentials_exception
     
 @app.put("/api/user/auth")
 async def login(user: User):
@@ -167,6 +196,9 @@ async def signOn(user: SignOnInfo):
 @app.get("/api/user/auth")
 async def checkUser(token_data: TokenData = Depends(verify_jwt_token)) :
     # print(token_data)
+    # 判斷 token_data 是不是 JSONResponse 資料型態，如果是直接返回，如果是正常的資料繼續往下走
+    if isinstance(token_data, JSONResponse):
+        return token_data
     result = {
                 "id": token_data.userID,
                 "name": token_data.name,
@@ -177,6 +209,8 @@ async def checkUser(token_data: TokenData = Depends(verify_jwt_token)) :
 
 @app.post("/api/booking")
 async def bookEvent(booking_data: BookingData, token_data: TokenData = Depends(verify_jwt_token)):
+    if isinstance(token_data, JSONResponse):
+        return token_data
     con, cursor = connectMySQLserver()
     if cursor is not None:
         try: 
@@ -197,6 +231,8 @@ async def bookEvent(booking_data: BookingData, token_data: TokenData = Depends(v
     
 @app.get("/api/booking")
 async def getEvent(token_data: TokenData = Depends(verify_jwt_token)):
+    if isinstance(token_data, JSONResponse):
+        return token_data
     con, cursor = connectMySQLserver()
     if cursor is not None:
         try:
@@ -245,6 +281,8 @@ async def getEvent(token_data: TokenData = Depends(verify_jwt_token)):
 
 @app.delete("/api/booking")
 async def deleteEvent(token_data: TokenData = Depends(verify_jwt_token)):
+    if isinstance(token_data, JSONResponse):
+        return token_data
     con, cursor = connectMySQLserver()
     if cursor is not None:
         try: 
