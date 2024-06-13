@@ -101,14 +101,14 @@ h2 {
 
 .noReservation {
     max-width: 1000px;
-    padding: 0px 10px;
+    width: 100%;
+    margin: 40px auto; 
     gap: 0px;
     justify-content: left;
     font-size: 16px;
     font-weight: 400;
     line-height: 13.3px;
     text-align: left;
-    margin: 20px;
     display: none;
 }
 
@@ -145,7 +145,14 @@ h2 {
     color: #666666;
 }
 
-.info .info-topic {
+.info > div > span {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 13.3px;
+    text-align: left;
+}
+
+.info .info-topic, #spotName{
     margin: 10px 0;
     font-size: 16px;
     font-weight: 700;
@@ -275,7 +282,16 @@ input[type="text"] {
     display: grid;
     place-items: center;
     height: 104px;
-    margin-top: 20px;
+}
+
+.full-height-footer {
+    grid-area: footer;
+    height: 865px;
+    display: flex;
+    align-items: first baseline;
+    justify-content: center;
+    text-align: center;
+    font-size: 1em;
 }
 
 .hr1, .hr2, .hr3 {

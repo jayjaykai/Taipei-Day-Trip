@@ -22,19 +22,20 @@
     </div>
     <div class="travelInfo">
       <div class="hello">您好，<span id="username">username</span>，待預訂的行程如下：</div>
-      <div class="travel-dedails">        
-        <img class="img" src="https://www.travel.taipei/d_upload_ttn/sceneadmin/pic/11002891.jpg">
+      <div class="travel-dedails">  
+        <!-- src="https://www.travel.taipei/d_upload_ttn/sceneadmin/image/A0/B0/C1/D878/E726/F304/2d6e8b50-76ce-4b7e-a795-0357cd6f2b3e.jpg"       -->
+        <img class="img" id="image">
         <div class="info">
-          <div class="info-topic">台北一日遊：</div>
-          <div>日期：</div>
-          <div>時間：</div>
-          <div>費用：</div>
-          <div>地點：</div>
+          <div class="info-topic"><label>台北一日遊：</label><span id="spotName"></span></div>
+          <div>日期：<span id="spotDay"></span></div>
+          <div>時間：<span id="spotTime"></span></div>
+          <div>費用：<span id="spotPrice"></span></div>
+          <div>地點：<span id="spotPlace"></span></div>
         </div>
       </div>
-      <button class="delete-btn"></button>
+      <button class="delete-btn" onclick="deleteEvent()"></button>
+      <div class="noReservation">目前沒有任何待預訂的行程</div>
     </div>
-    <div class="noReservation">目前沒有任何待預訂的行程</div>
     <hr class="hr1">
     <div class="personInfo">
       <div class="titleInfo">您的聯絡資訊</div>

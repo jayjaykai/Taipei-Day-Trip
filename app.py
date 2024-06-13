@@ -166,8 +166,6 @@ async def signOn(user: SignOnInfo):
 
 @app.get("/api/user/auth")
 async def checkUser(token_data: TokenData = Depends(verify_jwt_token)) :
-    # if isinstance(token_data, FileResponse):
-    #     return token_data 
     # print(token_data)
     result = {
                 "id": token_data.userID,
@@ -182,15 +180,85 @@ async def bookEvent(booking_data: BookingData, token_data: TokenData = Depends(v
     con, cursor = connectMySQLserver()
     if cursor is not None:
         try: 
-            cursor.execute("insert into Booking(attractionId, date, timeSlot, price) values(%s, %s, %s, %s)", 
-                           (booking_data.attraction_id, 
+            cursor.execute("insert into Booking(attractionId, userId, date, timeSlot, price) values(%s, %s, %s, %s, %s)", 
+                           (booking_data.attraction_id,
+                            token_data.userID,
                             booking_data.date if booking_data.date else None, 
                             booking_data.travel_time, 
                             booking_data.tour_price))
             con.commit()
             return JSONResponse(status_code=200, content={"ok": True})
         except Exception as err:
-            return JSONResponse(status_code=500, content={"error": True, "message": "建立失敗，輸入不正確或其他原因"})
+            return JSONResponse(status_code=400, content={"error": True, "message": "建立失敗，輸入不正確或其他原因"})
+        finally:
+            con.close()
+    else:
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+    
+@app.get("/api/booking")
+async def getEvent(token_data: TokenData = Depends(verify_jwt_token)):
+    con, cursor = connectMySQLserver()
+    if cursor is not None:
+        try:
+            Result = [] 
+            attractionResult = []
+            # 先取得 Booking 內的資料
+            cursor.execute("select attractionId, date, timeSlot, price from Booking where userId = %s", (token_data.userID,))
+            bookingData = cursor.fetchone()
+            # print(bookingData)
+            if bookingData:
+                cursor.fetchall()
+                # 再取得 Attraction 內的資料
+                cursor.execute("select id, name, address, images from Attraction where id = %s", (bookingData[0],))
+                attractionData = cursor.fetchone()
+                # print(attractionData)
+
+                images = []
+                urls = attractionData[3].split(',')
+                for url in urls:
+                    if url.lower().endswith(('jpg', 'png')):
+                        images.append(url)
+
+                if attractionData:
+                    attractionResult= {
+                        "id": attractionData[0],
+                        "name": attractionData[1],
+                        "address": attractionData[2],
+                        "image": images[0]
+                    }
+
+                    Result = {
+                        "attraction": attractionResult,
+                        "date": bookingData[1],
+                        "time": bookingData[2],
+                        "price": bookingData[3]
+                    }
+
+                    # print(Result)
+            return JSONResponse(status_code=200, content={"data": Result})
+        except Exception as err:
+            return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+        finally:
+            con.close()
+    else:
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})    
+
+@app.delete("/api/booking")
+async def deleteEvent(token_data: TokenData = Depends(verify_jwt_token)):
+    con, cursor = connectMySQLserver()
+    if cursor is not None:
+        try: 
+             # 先取得 Booking 內的資料
+            cursor.execute("select attractionId from Booking where userId = %s", (token_data.userID,))
+            bookingData = cursor.fetchone()
+            print(bookingData)
+            if bookingData:
+                cursor.fetchall()
+                cursor.execute("delete from Booking where userId = %s and attractionId = %s", (token_data.userID, bookingData[0]))
+                con.commit()
+            return JSONResponse(status_code=200, content={"ok": True})
+        except Exception as err:
+            return JSONResponse(status_code=400, content={"error": True, "message": "建立失敗，輸入不正確或其他原因"})
         finally:
             con.close()
     else:
