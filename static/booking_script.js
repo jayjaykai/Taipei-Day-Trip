@@ -78,7 +78,6 @@ async function execute(){
             spotPrice.textContent = "新台幣 " + result.data.price + " 元";
             let spotPlace = document.getElementById('spotPlace');
             spotPlace.textContent = result.data.attraction.address;
-            document.querySelector(".footer").classList.add("full-height-footer");
             document.querySelector(".travel-dedails").style.display = 'grid';
             document.querySelector(".personInfo").style.display = 'flex';
             document.querySelector(".creditCardInfo").style.display = 'flex';
