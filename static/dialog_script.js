@@ -21,7 +21,7 @@ document.getElementById('loginButton').addEventListener('click', function() {
                 });
 
                  // 註冊對話框邏輯
-                 const showSignon = document.getElementById("showSignon");
+                 let showSignon = document.getElementById("showSignon");
                  showSignon.addEventListener("click", (e) => {
                      e.preventDefault();
                      loginModal.close();

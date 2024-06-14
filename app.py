@@ -103,25 +103,25 @@ def verify_jwt_token(token: str = Depends(oauth2_scheme)) -> Union[TokenData, JS
         email: str = payload.get("email")
         if user_id is None or username is None or email is None:
             return JSONResponse(
-                status_code=status.HTTP_403_FORBIDDEN,
+                status_code=403,
                 content={"error": True, "message": "未登入系統，拒絕存取"}
             )
         return TokenData(userID=user_id, name=username, email=email)
     except ExpiredSignatureError:
         return JSONResponse(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=403,
             content={"error": True, "message": "未登入系統，拒絕存取"}
         )
     except JWTError:
         return JSONResponse(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=403,
             content={"error": True, "message": "未登入系統，拒絕存取"}
         )
     except Exception as e:
         return JSONResponse(
             # status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             # content={"error": True, "message": f"Unexpected error: {str(e)}"}
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=403,
             content={"error": True, "message": "未登入系統，拒絕存取"}
         )
 
