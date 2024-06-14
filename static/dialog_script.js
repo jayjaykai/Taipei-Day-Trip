@@ -73,7 +73,7 @@ async function bookEvent() {
         alert('請先登入會員帳戶');
         return;
     }
-    let response = await fetch('http://127.0.0.1:8000/api/user/auth', {
+    let response = await fetch('http://54.79.121.157:8000/api/user/auth', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -105,7 +105,7 @@ async function login() {
     };
 
     try {
-        let response = await fetch('http://127.0.0.1:8000/api/user/auth', {
+        let response = await fetch('http://54.79.121.157:8000/api/user/auth', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -147,7 +147,7 @@ async function signon() {
     };
 
     try {
-        let response = await fetch('http://127.0.0.1:8000/api/user', {
+        let response = await fetch('http://54.79.121.157:8000/api/user', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
