@@ -33,7 +33,7 @@ async function execute(){
 
         // console.log(result.data);
         let username = document.getElementById('username');
-        username.textContent = result.data.name;
+        username.textContent = "您好，" + result.data.name + "，待預訂的行程如下：";
 
 
         //getUserBookingData
@@ -78,6 +78,15 @@ async function execute(){
             spotPrice.textContent = "新台幣 " + result.data.price + " 元";
             let spotPlace = document.getElementById('spotPlace');
             spotPlace.textContent = result.data.attraction.address;
+            document.querySelector(".footer").classList.add("full-height-footer");
+            document.querySelector(".travel-dedails").style.display = 'grid';
+            document.querySelector(".personInfo").style.display = 'flex';
+            document.querySelector(".creditCardInfo").style.display = 'flex';
+            document.querySelector(".confirm").style.display = 'flex';
+            document.querySelector(".delete-btn").style.display = 'block';
+            document.querySelector(".hr1").style.display = 'block';
+            document.querySelector(".hr2").style.display = 'block';
+            document.querySelector(".hr3").style.display = 'block';
         }
     } 
     catch(error){

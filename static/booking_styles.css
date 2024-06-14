@@ -114,7 +114,7 @@ h2 {
 
 .travel-dedails {
     /* position: relative; */
-    display: grid;
+    display: none;
     grid-template-areas: "img info";
     grid-template-columns: 1fr 1fr;
     gap: 30px;
@@ -187,7 +187,7 @@ h2 {
 
 .personInfo {
     grid-area: personInfo;
-    display: flex;
+    display: none;
     flex-direction: column;
     align-items: flex-start;
     max-width: 1000px;
@@ -198,6 +198,7 @@ h2 {
 }
 
 .delete-btn {
+    display: none;
     position: absolute;
     width: 30px;
     height: 30px;
@@ -211,7 +212,7 @@ h2 {
 
 .creditCardInfo {
     grid-area: creditCardInfo;
-    display: flex;
+    display: none;
     flex-direction: column;
     align-items: flex-start;
     max-width: 1000px;
@@ -249,7 +250,7 @@ h2 {
 
 .confirm {
     grid-area: confirm;
-    display: flex;
+    display: none;
     flex-direction: column;
     align-items: flex-end;
     justify-content: center; 
@@ -317,6 +318,7 @@ input[type="text"] {
 }
 
 hr {
+    display: none;
     border: none;
     max-width: 1200px;
     border-top: 1px solid #ccc;
