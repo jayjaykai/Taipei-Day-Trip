@@ -97,7 +97,7 @@ async function execute(){
 async function deleteEvent(){
     if (confirm("是否確認要刪除這個預訂？")){
         token = localStorage.getItem('token');
-        response = await fetch('http://54.79.121.157:8000/api/booking', {
+        let response = await fetch('http://54.79.121.157:8000/api/booking', {
             method: 'DELETE',
             headers:{
                 'Content-Type': 'application/json',
@@ -113,6 +113,32 @@ async function deleteEvent(){
         }
         else{
             // alert("刪除成功");
+            window.location.href = `/booking`;
+        }
+    }
+    else{
+        return;
+    }
+}
+
+async function confirmAndPay(){
+    if (confirm("是否確認要訂購並付款？")){
+        token = localStorage.getItem('token');
+        let response = await fetch('http://127.0.0.1:8000/api/orders', {
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        result = await response.json();
+        if(!response.ok){
+            console.error('HTTP error', response.status);
+            alert(result.message);
+            return;
+        }
+        else{
             window.location.href = `/booking`;
         }
     }

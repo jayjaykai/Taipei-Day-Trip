@@ -10,6 +10,22 @@ html{
     overflow: auto;
 }
 
+h3{
+    color: #666666;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 24px;
+    text-align: center;
+}
+
+.note{
+    color: #666666;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 13.3px;
+    text-align: center;
+}
+
 .modal {
     position: fixed;
     z-index: 1;
