@@ -10,6 +10,14 @@ html{
     overflow: auto;
 }
 
+.note{
+    color: #666666;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 13.3px;
+    text-align: center;
+}
+
 .modal {
     position: fixed;
     z-index: 1;
@@ -27,18 +35,17 @@ html{
 }
 
 .modal-content {
-    max-width: 340px;
+    max-width: 310px;
     height: 275px;
     background-color: #fff;
     margin: 15% auto;
     padding: 20px;
     width: 80%;
     text-align: center;
-    box-shadow: none;
     animation: fadeIn 0.5s;
     position: relative;
     margin-top: 80px;
-    border-radius: 10px ;
+    border-radius: 10px;
     overflow: visible;
 }
 
@@ -47,14 +54,13 @@ html{
 }
 
 .modal-content::before {
-    content: "";
     position: absolute;
+    content: "";
     top: 0;
     left: 0;
     right: 0;
     height: 10px;
-    box-shadow: none; 
-    background-color: #008080; 
+    background: linear-gradient(270deg, #337788 0%, #66AABB 100%);
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
 }
@@ -65,40 +71,49 @@ html{
 }
 
 .close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
+    position: absolute;
+    background: url("close.png") no-repeat;
+    width: 30px;
+    height: 30px;
+    top: 15px;
+    right: 5px;
+    padding: 7px 0px 0px 0px;
+    gap: 0px;
+    opacity: 0.5;
 }
 
 .close:hover,
 .close:focus {
-    color: black;
-    text-decoration: none;
     cursor: pointer;
+    opacity: 1;
 }
 
-.modal-content h2 {
-    margin-top: 0;
+.modal-content h3 {
+    color: #666666;
     font-size: 24px;
-    color: #333;
+    font-weight: 700;
+    line-height: 24px;
+    text-align: center;
+    margin-bottom: 10px;
 }
 
 .modal-content input {
     width: 100%;
+    height: 47px;
     padding: 10px;
-    margin: 10px 0;
+    margin: 5px 0;
     border: 1px solid #ccc;
     border-radius: 5px;
 }
 
 .modal-content button {
     width: 100%;
+    height: 47px;
     padding: 10px;
     margin: 10px 0;
     border: none;
     border-radius: 5px;
-    background-color: #008080;
+    background-color: #448899;
     color: white;
     font-size: 16px;
     cursor: pointer;
@@ -110,10 +125,12 @@ html{
 
 .modal-content p {
     font-size: 14px;
+    margin-bottom: 5px;
 }
 
 .modal-content p a {
-    color: #008080;
+    color: #448899;
+    text-decoration: none
 }
 
 .modal-content p a:hover {

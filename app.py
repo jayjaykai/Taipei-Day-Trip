@@ -10,7 +10,7 @@ import os
 from dotenv import load_dotenv
 from mysql.connector.pooling import MySQLConnectionPool
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import hashlib
 import jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
@@ -56,6 +56,12 @@ pool = MySQLConnectionPool(
     password=os.getenv("DB_PASSWORD"),
     pool_size=pool_size)
 
+# TapPay setting
+TAPPAY_API_URL = os.getenv("TAPPAY_API_URL")
+TAPPAY_PARTNER_KEY = os.getenv("TAPPAY_PARTNER_KEY")
+TAPPAY_MERCHANT_ID = os.getenv("TAPPAY_MERCHANT_ID")
+
+print("TAPPAY_API_URL", os.getenv("TAPPAY_API_URL"))
 # JWT setting
 SECRET_KEY = "sfegrehrtwerwet54h5jtyfgdfgergerg"
 ALGORITHM = "HS256"
@@ -77,6 +83,39 @@ class TokenData(BaseModel):
     name: str
     email: str    
 
+class BookingData(BaseModel):
+    attraction_id: int
+    date: Optional[str] = None
+    travel_time: str
+    tour_price: int
+
+#*** TapPay data ***
+class Attraction(BaseModel):
+    id: int
+    name: str
+    address: str
+    image: str
+
+class Trip(BaseModel):
+    attraction: Attraction
+    date: str
+    time: str
+
+class Contact(BaseModel):
+    name: str
+    email: str
+    phone: str
+
+class Order(BaseModel):
+    price: int
+    trip: Trip
+    contact: Contact
+
+class PaymentRequest(BaseModel):
+    prime: str = Field(...)
+    order: Order
+#*** TapPay data ***
+
 def hash_password(text):
     mode = hashlib.sha256()
     mode.update((text+secret_key).encode())
@@ -89,24 +128,52 @@ def create_access_token(data: dict, expires_delta: timedelta):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def verify_jwt_token(token: str = Depends(oauth2_scheme))-> TokenData:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+def verify_jwt_token(token: str = Depends(oauth2_scheme)) -> Union[TokenData, JSONResponse]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("userID")
         username: str = payload.get("username")
         email: str = payload.get("email")
-        if user_id is None:
-            raise credentials_exception
+        if user_id is None or username is None or email is None:
+            return JSONResponse(
+                status_code=403,
+                content={"error": True, "message": "未登入系統，拒絕存取"}
+            )
         return TokenData(userID=user_id, name=username, email=email)
     except ExpiredSignatureError:
-        raise credentials_exception
-    except InvalidTokenError:
-        raise credentials_exception
+        return JSONResponse(
+            status_code=403,
+            content={"error": True, "message": "未登入系統，拒絕存取"}
+        )
+    except JWTError:
+        return JSONResponse(
+            status_code=403,
+            content={"error": True, "message": "未登入系統，拒絕存取"}
+        )
+    except Exception as e:
+        return JSONResponse(
+            # status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            # content={"error": True, "message": f"Unexpected error: {str(e)}"}
+            status_code=403,
+            content={"error": True, "message": "未登入系統，拒絕存取"}
+        )
+
+# def verify_jwt_token(token: str = Depends(oauth2_scheme)) -> TokenData:
+#     credentials_exception = HTTPException(
+#         status_code=status.HTTP_403_FORBIDDEN,
+#         detail="未登入系統，拒絕存取",
+#         headers={"WWW-Authenticate": "Bearer"},
+#     )
+#     try:
+#         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+#         user_id: str = payload.get("userID")
+#         username: str = payload.get("username")
+#         email: str = payload.get("email")
+#         if user_id is None or username is None or email is None:
+#             raise credentials_exception
+#         return TokenData(userID=user_id, name=username, email=email)
+#     except (ExpiredSignatureError, JWTError):
+#         raise credentials_exception
     
 @app.put("/api/user/auth")
 async def login(user: User):
@@ -161,9 +228,10 @@ async def signOn(user: SignOnInfo):
 
 @app.get("/api/user/auth")
 async def checkUser(token_data: TokenData = Depends(verify_jwt_token)) :
-    # if isinstance(token_data, FileResponse):
-    #     return token_data 
     # print(token_data)
+    # 判斷 token_data 是不是 JSONResponse 資料型態，如果是直接返回，如果是正常的資料繼續往下走
+    if isinstance(token_data, JSONResponse):
+        return token_data
     result = {
                 "id": token_data.userID,
                 "name": token_data.name,
@@ -172,6 +240,136 @@ async def checkUser(token_data: TokenData = Depends(verify_jwt_token)) :
 
     return {"data": result}
 
+@app.post("/api/booking")
+async def bookEvent(booking_data: BookingData, token_data: TokenData = Depends(verify_jwt_token)):
+    if isinstance(token_data, JSONResponse):
+        return token_data
+    con, cursor = connectMySQLserver()
+    if cursor is not None:
+        try: 
+            cursor.execute("insert into Booking(attractionId, userId, date, timeSlot, price) values(%s, %s, %s, %s, %s)", 
+                           (booking_data.attraction_id,
+                            token_data.userID,
+                            booking_data.date if booking_data.date else None, 
+                            booking_data.travel_time, 
+                            booking_data.tour_price))
+            con.commit()
+            return JSONResponse(status_code=200, content={"ok": True})
+        except Exception as err:
+            return JSONResponse(status_code=400, content={"error": True, "message": "建立失敗，輸入不正確或其他原因"})
+        finally:
+            con.close()
+    else:
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+    
+@app.get("/api/booking")
+async def getEvent(token_data: TokenData = Depends(verify_jwt_token)):
+    if isinstance(token_data, JSONResponse):
+        return token_data
+    con, cursor = connectMySQLserver()
+    if cursor is not None:
+        try:
+            Result = [] 
+            attractionResult = []
+            # 先取得 Booking 內的資料
+            cursor.execute("select attractionId, date, timeSlot, price from Booking where userId = %s", (token_data.userID,))
+            bookingData = cursor.fetchone()
+            # print(bookingData)
+            if bookingData:
+                cursor.fetchall()
+                # 再取得 Attraction 內的資料
+                cursor.execute("select id, name, address, images from Attraction where id = %s", (bookingData[0],))
+                attractionData = cursor.fetchone()
+                # print(attractionData)
+
+                images = []
+                urls = attractionData[3].split(',')
+                for url in urls:
+                    if url.lower().endswith(('jpg', 'png')):
+                        images.append(url)
+
+                if attractionData:
+                    attractionResult= {
+                        "id": attractionData[0],
+                        "name": attractionData[1],
+                        "address": attractionData[2],
+                        "image": images[0]
+                    }
+
+                    Result = {
+                        "attraction": attractionResult,
+                        "date": bookingData[1],
+                        "time": bookingData[2],
+                        "price": bookingData[3]
+                    }
+
+                    # print(Result)
+            return JSONResponse(status_code=200, content={"data": Result})
+        except Exception as err:
+            return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+        finally:
+            con.close()
+    else:
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})    
+
+@app.delete("/api/booking")
+async def deleteEvent(token_data: TokenData = Depends(verify_jwt_token)):
+    if isinstance(token_data, JSONResponse):
+        return token_data
+    con, cursor = connectMySQLserver()
+    if cursor is not None:
+        try: 
+             # 先取得 Booking 內的資料
+            cursor.execute("select attractionId from Booking where userId = %s", (token_data.userID,))
+            bookingData = cursor.fetchone()
+            print(bookingData)
+            if bookingData:
+                cursor.fetchall()
+                cursor.execute("delete from Booking where userId = %s and attractionId = %s", (token_data.userID, bookingData[0]))
+                con.commit()
+            return JSONResponse(status_code=200, content={"ok": True})
+        except Exception as err:
+            return JSONResponse(status_code=400, content={"error": True, "message": "建立失敗，輸入不正確或其他原因"})
+        finally:
+            con.close()
+    else:
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+
+# @app.post("/api/orders")
+# async def create_order(payment_request: PaymentRequest, token_data: TokenData = Depends(verify_jwt_token)):
+#     if isinstance(token_data, JSONResponse):
+#         return token_data
+#     try:
+#         # 整理支付請求資料
+#         contact = {
+#             "name": payment_request.order.contact.name,
+#             "email": payment_request.order.contact.email,
+#             "phone_number": payment_request.order.contact.phone,
+#         }
+
+#         payload = {
+#             "prime": payment_request.prime,
+#             "partner_key": TAPPAY_PARTNER_KEY,
+#             "merchant_id": TAPPAY_MERCHANT_ID,
+#             "amount": payment_request.order.price,
+#             "currency": "TWD",
+#             "details": "Payment testing for attraction trip",
+#             "cardholder": contact
+#         }
+
+#         headers = {
+#             "Content-Type": "application/json",
+#             "x-api-key": TAPPAY_PARTNER_KEY
+#         }
+
+#         response = requests.post(TAPPAY_API_URL, json=payload, headers=headers)
+#         if response.status_code == 200:
+#             return JSONResponse(status_code=200, content=response.json())
+#         else:
+#             raise JSONResponse(status_code=400, content={"error": True, "message": "訂單建立失敗，輸入不正確或其他原因"})
+#     except Exception:
+#         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+    
 #*** Static Pages (Never Modify Code in this Block) ***
 @app.get("/", include_in_schema=False)
 async def index(request: Request):

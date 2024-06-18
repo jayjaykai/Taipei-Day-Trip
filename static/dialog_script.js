@@ -1,3 +1,6 @@
+document.addEventListener('DOMContentLoaded', function() {
+    checkToken();
+});
 document.getElementById('loginButton').addEventListener('click', function() {
     // 檢查dialog是否存在，不存在使用fetch寫到body最後面
     // 登入畫面
@@ -14,16 +17,17 @@ document.getElementById('loginButton').addEventListener('click', function() {
                 });
 
                 // 點擊視窗外部關閉視窗
-                window.addEventListener('click', function(event) {
-                    if (event.target == modal) {
-                        modal.close();
-                    }
-                });
+                // window.addEventListener('click', function(event) {
+                //     if (event.target == modal) {
+                //         modal.close();
+                //     }
+                // });
 
                  // 註冊對話框邏輯
-                 const showSignon = document.getElementById("showSignon");
-                 showSignon.addEventListener("click", (e) => {
-                     e.preventDefault();
+                 let showSignon = document.getElementById("showSignon");
+                 showSignon.addEventListener("click", (event) => {
+                     event.preventDefault();
+                     document.getElementById('loginResult').textContent='';
                      loginModal.close();
                      if (!document.getElementById('signonModal')) {
                          fetch('/static/signon.html')
@@ -41,18 +45,19 @@ document.getElementById('loginButton').addEventListener('click', function() {
                                  });
  
                                  const showLogin = document.getElementById("showLogin");
-                                 showLogin.addEventListener("click", (e) => {
-                                     e.preventDefault();
-                                     signonModal.close();
-                                     loginModal.showModal();
+                                 showLogin.addEventListener("click", (event) => {
+                                    event.preventDefault();
+                                    document.getElementById('signonResult').textContent='';
+                                    signonModal.close();
+                                    loginModal.showModal();
                                  });
  
                                  // 點擊視窗外部關閉視窗
-                                 window.addEventListener('click', function(event) {
-                                     if (event.target == signonModal) {
-                                         signonModal.close();
-                                     }
-                                 });
+                                //  window.addEventListener('click', function(event) {
+                                //      if (event.target == signonModal) {
+                                //          signonModal.close();
+                                //      }
+                                //  });
                              });
                      } else {
                         let signonModal = document.getElementById('signonModal');
@@ -68,22 +73,23 @@ document.getElementById('loginButton').addEventListener('click', function() {
 });
 
 async function bookEvent() {
-    let token = sessionStorage.getItem('token');
+    let token = localStorage.getItem('token');
     if(!token){
         alert('請先登入會員帳戶');
         return;
     }
-    let response = await fetch('http://127.0.0.1:8000/api/user/auth', {
+    let response = await fetch('http://54.79.121.157:8000/api/user/auth', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
         }
     });
-    
-    if (response.status === 403) {
-        alert('無效的憑證，請重新登入');
-        window.location.href = `/`;
+
+    if (!response.ok) {
+        let result = await response.json();
+        alert(result.message);
+        // window.location.href = `/`;
         return;
     }
     window.location.href = `/booking`;
@@ -104,7 +110,7 @@ async function login() {
     };
 
     try {
-        let response = await fetch('http://127.0.0.1:8000/api/user/auth', {
+        let response = await fetch('http://54.79.121.157:8000/api/user/auth', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -112,15 +118,21 @@ async function login() {
             body: JSON.stringify(userIfo)
         });
         let result = await response.json();
+        let loginResultDiv = document.getElementById('loginResult');
         if (!response.ok) {
             console.error('HTTP error', response.status);
-            alert(result.message);
+            loginResultDiv.textContent = result.message;
+            loginResultDiv.style.color = 'red';
+            console.log(result.message);
+            // alert(result.message);
             return;
         }
-        sessionStorage.setItem('token', result.token);
-
+        localStorage.setItem('token', result.token);
+        
+        checkToken();
         document.getElementById('email').value = '';
         document.getElementById('password').value = '';
+        loginResultDiv.textContent = '';
         document.getElementById('loginModal').close();
     } 
     catch (error) {
@@ -146,7 +158,7 @@ async function signon() {
     };
 
     try {
-        let response = await fetch('http://127.0.0.1:8000/api/user', {
+        let response = await fetch('http://54.79.121.157:8000/api/user', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -154,20 +166,70 @@ async function signon() {
             body: JSON.stringify(userIfo)
         });
         let result = await response.json();
+        let signonResultDiv = document.getElementById('signonResult');
         if (!response.ok) {
             console.error('HTTP error', response.status);
-            alert(result.message);
+            signonResultDiv.textContent = result.message;
+            signonResultDiv.style.color = 'red';
+            console.log(result.message);
             return;
         }
-        console.log( result.ok);
+        else{
+            signonResultDiv.textContent = "註冊成功";
+            signonResultDiv.style.color = 'green';
+        }
 
         document.getElementById('enroll_name').value = '';
         document.getElementById('enroll_email').value = '';
         document.getElementById('enroll_password').value = '';
-        document.getElementById('signonModal').close();
+        // document.getElementById('signonModal').close();
     } 
     catch (error) {
         console.error('Error:', error);
         alert('伺服器內部錯誤，請聯絡系統管理員');
+    }
+}
+
+async function checkToken() {
+    let token = localStorage.getItem('token');
+    let loginButton = document.getElementById('loginButton');
+    let logoutButton = document.getElementById('logoutButton');
+
+    if (token){
+        //有token的情況下，再次檢查登入者的token資訊
+        response = await fetch('http://54.79.121.157:8000/api/user/auth', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        let result = await response.json();
+        if (!response.ok) {
+            loginButton.style.display = 'inline';
+            logoutButton.style.display = 'none';
+            alert(result.message);
+            localStorage.removeItem('token');
+            return;
+        }
+        // console.log("User data: ",result.data);
+
+        loginButton.style.display = 'none';
+        logoutButton.style.display = 'inline';
+    } 
+    else{
+        loginButton.style.display = 'inline';
+        logoutButton.style.display = 'none';
+    }
+}
+
+function logout(){
+    if (confirm("確認要登出系統嗎？")){
+        localStorage.removeItem('token');
+        checkToken();
+    }
+    else
+    {
+        return;
     }
 }

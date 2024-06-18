@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Booking</title>
   <link rel="stylesheet" href="/static/booking_styles.css">
+  <link rel="stylesheet" href="/static/dialog_styles.css">
 </head>
 <body>
   <div class="container">
@@ -14,24 +15,80 @@
             <a href="/">台北一日遊</a>
           </h2>
           <div>
-              <button>預定行程</button>
-              <button id="loginButton">登入/註冊</button>
+              <button onclick="bookEvent()">預定行程</button>
+              <button id="loginButton" style="display:none;">登入/註冊</button>
+              <button id="logoutButton" onclick="logout()" style="display:none;">登出系統</button>
           </div>
         </nav>
     </div>
     <div class="travelInfo">
-      <p>您好，<span id="username">username</span>，待預訂的行程如下：</p>
-      <p>目前沒有任何待預訂的行程</p>
+      <div class="hello"><span id="username"></span></div>
+      <div class="travel-dedails">  
+        <img class="img" id="image">
+        <div class="info">
+          <div class="info-topic"><label>台北一日遊：</label><span id="spotName"></span></div>
+          <div>日期：<span id="spotDay"></span></div>
+          <div>時間：<span id="spotTime"></span></div>
+          <div>費用：<span id="spotPrice"></span></div>
+          <div>地點：<span id="spotPlace"></span></div>
+        </div>
+        <!-- <button class="delete-btn" onclick="deleteEvent()"></button> -->
+      </div>   
+      <button class="delete-btn" onclick="deleteEvent()"></button>
+      <div class="noReservation">目前沒有任何待預訂的行程</div>
     </div>
     <hr class="hr1">
-    <div class="personInfo"></div>
+    <div class="personInfo">
+      <div class="titleInfo">您的聯絡資訊</div>
+      <div>聯絡姓名：
+        <input type="text" id="contactName" placeholder="請輸入姓名" required>
+      </div>
+      <div>連絡信箱：
+        <input type="text" id="contactEmail" placeholder="請輸入信箱" required>
+      </div>
+      <div>手機號碼：
+        <input type="text" id="contactNumber" placeholder="請輸入手機號碼" required>
+      </div>
+      <div class="highlight">請保持手機暢通，準時到達，導覽人員將用手機與您聯繫，務必留下正確的聯絡方式。</div>
+    </div>
     <hr class="hr2">
-    <div class="creditCardInfo"></div>
+    <div class="creditCardInfo">
+      <div class="titleInfo">信用卡付款資訊</div>
+      <!-- <div class="tpfield" id="card-number"></div>
+      <div class="tpfield" id="card-expiration-date"></div>
+      <div class="tpfield" id="card-ccv"></div> -->
+      <div class="form-group">
+        <span id="cardtype">卡片號碼：</span>
+        <div class="tpfield" id="card-number" placeholder="請輸入卡片號碼" required></div>
+      </div>
+      <div class="form-group">
+        <span id="cardtype">過期時間：</span>
+        <div class="tpfield" id="card-expiration-date" placeholder="請輸入卡片過期時間" required></div>
+      </div>
+      <div class="form-group">
+        <span id="cardtype">驗證密碼：</span>
+        <div class="tpfield" id="card-ccv" placeholder="請輸入驗證密碼" required></div>
+      </div>
+      <!-- <div>卡片號碼：
+        <input type="text" id="cardnumber" placeholder="請輸入卡片號碼" required>
+      </div>
+      <div>過期時間：
+        <input type="text" id="expireDay" placeholder="請輸入卡片過期時間" required>
+      </div>
+      <div>驗證密碼：
+        <input type="text" id="verifyPassword" placeholder="請輸入驗證密碼" required>
+      </div> -->
+    </div>
     <hr class="hr3">
-    <div class="confirm"></div>
+    <div class="confirm">
+      <div>總價：新台幣 2000 元</div>
+      <button onclick="confirmAndPay();onSubmit(event)">確認訂購並付款</button>
+    </div>
     <footer class="footer">COPYRIGHT © 2021 台北一日遊</footer>
   </div>
   <script src="/static/dialog_script.js" defer></script>
   <script src="/static/booking_script.js" defer></script>
+  <script src="https://js.tappaysdk.com/sdk/tpdirect/v5.18.0"></script>
+  <script src="/static/tapPay.scripts.js" defer></script>
 </body>
 </html>
