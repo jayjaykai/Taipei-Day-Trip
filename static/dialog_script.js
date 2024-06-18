@@ -128,8 +128,8 @@ async function login() {
             return;
         }
         localStorage.setItem('token', result.token);
+        
         checkToken();
-
         document.getElementById('email').value = '';
         document.getElementById('password').value = '';
         loginResultDiv.textContent = '';
@@ -190,12 +190,30 @@ async function signon() {
     }
 }
 
-function checkToken() {
+async function checkToken() {
     let token = localStorage.getItem('token');
     let loginButton = document.getElementById('loginButton');
     let logoutButton = document.getElementById('logoutButton');
 
     if (token){
+        //有token的情況下，再次檢查登入者的token資訊
+        response = await fetch('http://54.79.121.157:8000/api/user/auth', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        let result = await response.json();
+        if (!response.ok) {
+            loginButton.style.display = 'inline';
+            logoutButton.style.display = 'none';
+            alert(result.message);
+            localStorage.removeItem('token');
+            return;
+        }
+        // console.log("User data: ",result.data);
+
         loginButton.style.display = 'none';
         logoutButton.style.display = 'inline';
     } 

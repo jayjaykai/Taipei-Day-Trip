@@ -10,7 +10,7 @@ import os
 from dotenv import load_dotenv
 from mysql.connector.pooling import MySQLConnectionPool
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import hashlib
 import jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
@@ -56,6 +56,12 @@ pool = MySQLConnectionPool(
     password=os.getenv("DB_PASSWORD"),
     pool_size=pool_size)
 
+# TapPay setting
+TAPPAY_API_URL = os.getenv("TAPPAY_API_URL")
+TAPPAY_PARTNER_KEY = os.getenv("TAPPAY_PARTNER_KEY")
+TAPPAY_MERCHANT_ID = os.getenv("TAPPAY_MERCHANT_ID")
+
+print("TAPPAY_API_URL", os.getenv("TAPPAY_API_URL"))
 # JWT setting
 SECRET_KEY = "sfegrehrtwerwet54h5jtyfgdfgergerg"
 ALGORITHM = "HS256"
@@ -82,6 +88,33 @@ class BookingData(BaseModel):
     date: Optional[str] = None
     travel_time: str
     tour_price: int
+
+#*** TapPay data ***
+class Attraction(BaseModel):
+    id: int
+    name: str
+    address: str
+    image: str
+
+class Trip(BaseModel):
+    attraction: Attraction
+    date: str
+    time: str
+
+class Contact(BaseModel):
+    name: str
+    email: str
+    phone: str
+
+class Order(BaseModel):
+    price: int
+    trip: Trip
+    contact: Contact
+
+class PaymentRequest(BaseModel):
+    prime: str = Field(...)
+    order: Order
+#*** TapPay data ***
 
 def hash_password(text):
     mode = hashlib.sha256()
@@ -302,6 +335,41 @@ async def deleteEvent(token_data: TokenData = Depends(verify_jwt_token)):
     else:
         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
 
+# @app.post("/api/orders")
+# async def create_order(payment_request: PaymentRequest, token_data: TokenData = Depends(verify_jwt_token)):
+#     if isinstance(token_data, JSONResponse):
+#         return token_data
+#     try:
+#         # 整理支付請求資料
+#         contact = {
+#             "name": payment_request.order.contact.name,
+#             "email": payment_request.order.contact.email,
+#             "phone_number": payment_request.order.contact.phone,
+#         }
+
+#         payload = {
+#             "prime": payment_request.prime,
+#             "partner_key": TAPPAY_PARTNER_KEY,
+#             "merchant_id": TAPPAY_MERCHANT_ID,
+#             "amount": payment_request.order.price,
+#             "currency": "TWD",
+#             "details": "Payment testing for attraction trip",
+#             "cardholder": contact
+#         }
+
+#         headers = {
+#             "Content-Type": "application/json",
+#             "x-api-key": TAPPAY_PARTNER_KEY
+#         }
+
+#         response = requests.post(TAPPAY_API_URL, json=payload, headers=headers)
+#         if response.status_code == 200:
+#             return JSONResponse(status_code=200, content=response.json())
+#         else:
+#             raise JSONResponse(status_code=400, content={"error": True, "message": "訂單建立失敗，輸入不正確或其他原因"})
+#     except Exception:
+#         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+    
 #*** Static Pages (Never Modify Code in this Block) ***
 @app.get("/", include_in_schema=False)
 async def index(request: Request):

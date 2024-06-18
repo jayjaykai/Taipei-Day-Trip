@@ -10,14 +10,6 @@ html{
     overflow: auto;
 }
 
-h3{
-    color: #666666;
-    font-size: 24px;
-    font-weight: 700;
-    line-height: 24px;
-    text-align: center;
-}
-
 .note{
     color: #666666;
     font-size: 16px;
@@ -43,7 +35,7 @@ h3{
 }
 
 .modal-content {
-    max-width: 340px;
+    max-width: 310px;
     height: 275px;
     background-color: #fff;
     margin: 15% auto;
@@ -62,8 +54,8 @@ h3{
 }
 
 .modal-content::before {
-    content: "";
     position: absolute;
+    content: "";
     top: 0;
     left: 0;
     right: 0;
@@ -83,8 +75,8 @@ h3{
     background: url("close.png") no-repeat;
     width: 30px;
     height: 30px;
-    top: 20px;
-    left: 300px;
+    top: 15px;
+    right: 5px;
     padding: 7px 0px 0px 0px;
     gap: 0px;
     opacity: 0.5;
@@ -96,22 +88,27 @@ h3{
     opacity: 1;
 }
 
-.modal-content h2 {
-    margin-top: 0;
+.modal-content h3 {
+    color: #666666;
     font-size: 24px;
-    color: #333;
+    font-weight: 700;
+    line-height: 24px;
+    text-align: center;
+    margin-bottom: 10px;
 }
 
 .modal-content input {
     width: 100%;
+    height: 47px;
     padding: 10px;
-    margin: 10px 0;
+    margin: 5px 0;
     border: 1px solid #ccc;
     border-radius: 5px;
 }
 
 .modal-content button {
     width: 100%;
+    height: 47px;
     padding: 10px;
     margin: 10px 0;
     border: none;
@@ -128,6 +125,7 @@ h3{
 
 .modal-content p {
     font-size: 14px;
+    margin-bottom: 5px;
 }
 
 .modal-content p a {
