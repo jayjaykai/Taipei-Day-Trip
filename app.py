@@ -1,5 +1,6 @@
 from typing import Optional, Union
 from fastapi import *
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.staticfiles import StaticFiles
@@ -10,11 +11,12 @@ import os
 from dotenv import load_dotenv
 from mysql.connector.pooling import MySQLConnectionPool
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 import hashlib
 import jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from datetime import datetime, timedelta, timezone
+import requests
 
 secret_key="dfjewkjfejwfjiewfjoewjfioewjf"
 
@@ -70,12 +72,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/user/auth")
 
 # 自定義User資料 model
 class User(BaseModel):
-    email: str
+    email: EmailStr
     password: str
     
 class SignOnInfo(BaseModel):
     name: str
-    email: str
+    email: EmailStr
     password: str
 
 class TokenData(BaseModel):
@@ -103,7 +105,7 @@ class Trip(BaseModel):
 
 class Contact(BaseModel):
     name: str
-    email: str
+    email: EmailStr
     phone: str
 
 class Order(BaseModel):
@@ -202,14 +204,22 @@ async def login(user: User):
     else:
         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
 
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={"error": True, "message": "Email格式有誤，請檢查輸入的格式和內容"}
+    )
+
 @app.post("/api/user")
 async def signOn(user: SignOnInfo):
     con, cursor = connectMySQLserver()
     if cursor is not None:
         try:
-            print(user.name)
-            print(user.email)
-            print(user.password)
+            # print(user.name)
+            # print(user.email)
+            # print(user.password)
             cursor.execute("select name from User where email = %s", (user.email,))
             data = cursor.fetchone()
             if data:
@@ -236,7 +246,7 @@ async def checkUser(token_data: TokenData = Depends(verify_jwt_token)) :
                 "id": token_data.userID,
                 "name": token_data.name,
                 "email": token_data.email
-             }
+            }
 
     return {"data": result}
 
@@ -335,40 +345,51 @@ async def deleteEvent(token_data: TokenData = Depends(verify_jwt_token)):
     else:
         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
 
-# @app.post("/api/orders")
-# async def create_order(payment_request: PaymentRequest, token_data: TokenData = Depends(verify_jwt_token)):
-#     if isinstance(token_data, JSONResponse):
-#         return token_data
-#     try:
-#         # 整理支付請求資料
-#         contact = {
-#             "name": payment_request.order.contact.name,
-#             "email": payment_request.order.contact.email,
-#             "phone_number": payment_request.order.contact.phone,
-#         }
+@app.post("/api/orders")
+async def create_order(payment_request: PaymentRequest, token_data: TokenData = Depends(verify_jwt_token)):
+    if isinstance(token_data, JSONResponse):
+        return token_data
+    # print("payment_request", payment_request)
+    try:
+        # 整理支付請求資料
+        contact = {
+            "name": payment_request.order.contact.name,
+            "email": payment_request.order.contact.email,
+            "phone_number": payment_request.order.contact.phone,
+        }
 
-#         payload = {
-#             "prime": payment_request.prime,
-#             "partner_key": TAPPAY_PARTNER_KEY,
-#             "merchant_id": TAPPAY_MERCHANT_ID,
-#             "amount": payment_request.order.price,
-#             "currency": "TWD",
-#             "details": "Payment testing for attraction trip",
-#             "cardholder": contact
-#         }
+        payload = {
+            "prime": payment_request.prime,
+            "partner_key": TAPPAY_PARTNER_KEY,
+            "merchant_id": TAPPAY_MERCHANT_ID,
+            "amount": payment_request.order.price,
+            "currency": "TWD",
+            "details": "Payment testing for attraction trip",
+            "cardholder": contact
+        }
 
-#         headers = {
-#             "Content-Type": "application/json",
-#             "x-api-key": TAPPAY_PARTNER_KEY
-#         }
-
-#         response = requests.post(TAPPAY_API_URL, json=payload, headers=headers)
-#         if response.status_code == 200:
-#             return JSONResponse(status_code=200, content=response.json())
-#         else:
-#             raise JSONResponse(status_code=400, content={"error": True, "message": "訂單建立失敗，輸入不正確或其他原因"})
-#     except Exception:
-#         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+        headers = {
+            "Content-Type": "application/json",
+            "x-api-key": TAPPAY_PARTNER_KEY
+        }
+        response = requests.post(TAPPAY_API_URL, json=payload, headers=headers)
+        # print(response.json())
+        # print(response.json()['rec_trade_id'])
+        # print(response.json()['status'])
+        # print(response.json()['msg'])
+        Result = {
+            "number": response.json()['rec_trade_id'],
+            "payment": {
+                "status":response.json()['status'],
+                "message":response.json()['msg']
+            }
+        }
+        if response.status_code == 200:
+            return JSONResponse(status_code=200, content={"data": Result})
+        else:
+            raise JSONResponse(status_code=400, content={"error": True, "message": "訂單建立失敗，輸入不正確或其他原因"})
+    except Exception:
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
     
 #*** Static Pages (Never Modify Code in this Block) ***
 @app.get("/", include_in_schema=False)

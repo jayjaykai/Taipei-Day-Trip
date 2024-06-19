@@ -109,29 +109,4 @@ TPDirect.card.onUpdate(function (update) {
 // call TPDirect.card.getPrime when user submit form to get tappay prime
 // $('form').on('submit', onSubmit)
 
-function onSubmit(event) {
-    event.preventDefault();
-
-    // 取得 TapPay Fields 的 status
-    const tappayStatus = TPDirect.card.getTappayFieldsStatus();
-
-    // 確認是否可以 getPrime
-    if (tappayStatus.canGetPrime === false) {
-        alert('can not get prime');
-        return;
-    }
-
-    // Get prime
-    TPDirect.card.getPrime((result) => {
-        if (result.status !== 0) {
-            alert('get prime error ' + result.msg);
-            return;
-        }
-        alert('get prime 成功，prime: ' + result.card.prime);
-
-        // send prime to your server, to pay with Pay by Prime API .
-        // Pay By Prime Docs: https://docs.tappaysdk.com/tutorial/zh/back.html#pay-by-prime-api
-    })
-}
-
 TPDirect.setupSDK(151148, 'app_NRKxxIMkHz4HbAmtkuu3hZZHPh1S0njrXw1vZK9EYMbmLFIeRCYxGqgBGxdY', 'sandbox') // APP_ID: 151148 APP_KEY:app_NRKxxIMkHz4HbAmtkuu3hZZHPh1S0njrXw1vZK9EYMbmLFIeRCYxGqgBGxdY
