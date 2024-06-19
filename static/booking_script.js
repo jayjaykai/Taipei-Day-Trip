@@ -131,22 +131,28 @@ async function deleteEvent(){
 }
 
 function disableInteraction() {
-    document.querySelectorAll('button, input, select, textarea').forEach(element => {
+    document.getElementById('card-number').setAttribute('contenteditable', 'false');
+    document.getElementById('card-expiration-date').setAttribute('contenteditable', 'false');
+    document.getElementById('card-ccv').setAttribute('contenteditable', 'false');
+    document.querySelectorAll('button, input').forEach(element => {
         element.disabled = true;
     });
 }
 
 function enableInteraction() {
-    document.querySelectorAll('button, input, select, textarea').forEach(element => {
+    document.getElementById('card-number').setAttribute('contenteditable', 'true');
+    document.getElementById('card-expiration-date').setAttribute('contenteditable', 'true');
+    document.getElementById('card-ccv').setAttribute('contenteditable', 'true');
+    document.querySelectorAll('button, input').forEach(element => {
         element.disabled = false;
     });
 }
 
 async function onSubmit(event) {
     event.preventDefault();
+    // 禁止使用者在進行期間點選其他的按鈕
+    disableInteraction();
     if (confirm("是否確認要訂購並付款？")){
-        // 禁止使用者在進行期間點選其他的按鈕
-        disableInteraction();
          // 取得 TapPay Fields 的 status
         const tappayStatus = TPDirect.card.getTappayFieldsStatus();
 
@@ -164,7 +170,7 @@ async function onSubmit(event) {
                 return;
             }
             let prime = result.card.prime;
-            // alert('get prime 成功，prime: ' + result.card.prime);
+            alert('get prime 成功，prime: ' + result.card.prime);
 
             // send prime to your server, to pay with Pay by Prime API .
             // Pay By Prime Docs: https://docs.tappaysdk.com/tutorial/zh/back.html#pay-by-prime-api
@@ -214,13 +220,14 @@ async function onSubmit(event) {
             else{
                 // console.log("Result: ", getOrdersResult);
                 alert("付款成功！")
-                deleteFetch();
+                // deleteFetch();
                 enableInteraction();
                 // window.location.href = `/booking`;
             }
         });
     }
     else{
+        enableInteraction();
         return;
     }
 }

@@ -332,6 +332,10 @@ hr {
     width: 100%;
 }
 
+[contenteditable="false"] {
+    pointer-events: none;
+}
+
 @media (max-width: 600px) {
     .container {
         grid-template-areas: 
