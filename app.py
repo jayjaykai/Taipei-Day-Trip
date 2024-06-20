@@ -1,15 +1,13 @@
 from typing import Optional, Union
+from dbconfig import db, db_close
 from fastapi import *
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.staticfiles import StaticFiles
 from jose import ExpiredSignatureError, JWTError
-import mysql.connector
-from mysql.connector import Error
 import os
 from dotenv import load_dotenv
-from mysql.connector.pooling import MySQLConnectionPool
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, EmailStr
 import hashlib
@@ -17,15 +15,16 @@ import jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from datetime import datetime, timedelta, timezone
 import requests
+import redis
+import json
 
 secret_key="dfjewkjfejwfjiewfjoewjfioewjf"
 
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
-# app.mount("/static", StaticFiles(directory="/home/ubuntu/tdt/static"), name="static")
 load_dotenv()
-# load_dotenv('/home/ubuntu/tdt/.env')
+
 # 設定可存取資源的來源端點
 origins = [
     "http://127.0.0.1:8000",
@@ -39,31 +38,42 @@ app.add_middleware(
     allow_headers=["*"],  # 允許所有HTTP headers
 )
 
-
-print("DB_HOST:", os.getenv("DB_HOST"))
-print("DB_USER:", os.getenv("DB_USER"))
-print("DB_PASSWORD:", os.getenv("DB_PASSWORD"))
-print("DB_NAME:", os.getenv("DB_NAME"))
-
-pool_size_str = os.getenv("POOL_SIZE")
-if pool_size_str is None:
-    pool_size = 5  
-else:
-    pool_size = int(pool_size_str)
-
-pool = MySQLConnectionPool(
-    host=os.getenv("DB_HOST"),
-    database=os.getenv("DB_NAME"),
-    user=os.getenv("DB_USER"),
-    password=os.getenv("DB_PASSWORD"),
-    pool_size=pool_size)
-
 # TapPay setting
 TAPPAY_API_URL = os.getenv("TAPPAY_API_URL")
 TAPPAY_PARTNER_KEY = os.getenv("TAPPAY_PARTNER_KEY")
 TAPPAY_MERCHANT_ID = os.getenv("TAPPAY_MERCHANT_ID")
 
-print("TAPPAY_API_URL", os.getenv("TAPPAY_API_URL"))
+# print("TAPPAY_API_URL", os.getenv("TAPPAY_API_URL"))
+
+# # Redis
+# redis_host = os.getenv("REDIS_HOST", "localhost")
+# redis_port = int(os.getenv("REDIS_PORT", 6379))
+# redis_password = os.getenv("REDIS_PASSWORD", None)
+# redis_client = None
+# # Connect to Redis server
+# def create_redis_client():
+#     try:
+#         client = redis.StrictRedis(host=redis_host, port=redis_port, password=redis_password, decode_responses=True)
+#         client.ping()
+#         print("Redis client done!")
+#         return client
+#     except redis.ConnectionError:
+#         print("Redis is None!")
+#         return None
+
+# redis_client = create_redis_client()
+
+# def is_redis_available():
+#     global redis_client
+#     if redis_client is None:
+#         return False
+#     try:
+#         redis_client.ping()
+#         return True
+#     except redis.ConnectionError:
+#         redis_client = None
+#         return False
+
 # JWT setting
 SECRET_KEY = "sfegrehrtwerwet54h5jtyfgdfgergerg"
 ALGORITHM = "HS256"
@@ -179,7 +189,7 @@ def verify_jwt_token(token: str = Depends(oauth2_scheme)) -> Union[TokenData, JS
     
 @app.put("/api/user/auth")
 async def login(user: User):
-    con, cursor = connectMySQLserver()
+    con, cursor = db()
     if cursor is not None:
         try:
             # print(user.email)
@@ -214,7 +224,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.post("/api/user")
 async def signOn(user: SignOnInfo):
-    con, cursor = connectMySQLserver()
+    con, cursor = db()
     if cursor is not None:
         try:
             # print(user.name)
@@ -254,7 +264,7 @@ async def checkUser(token_data: TokenData = Depends(verify_jwt_token)) :
 async def bookEvent(booking_data: BookingData, token_data: TokenData = Depends(verify_jwt_token)):
     if isinstance(token_data, JSONResponse):
         return token_data
-    con, cursor = connectMySQLserver()
+    con, cursor = db()
     if cursor is not None:
         try: 
             cursor.execute("insert into Booking(attractionId, userId, date, timeSlot, price) values(%s, %s, %s, %s, %s)", 
@@ -276,7 +286,7 @@ async def bookEvent(booking_data: BookingData, token_data: TokenData = Depends(v
 async def getEvent(token_data: TokenData = Depends(verify_jwt_token)):
     if isinstance(token_data, JSONResponse):
         return token_data
-    con, cursor = connectMySQLserver()
+    con, cursor = db()
     if cursor is not None:
         try:
             Result = [] 
@@ -326,7 +336,7 @@ async def getEvent(token_data: TokenData = Depends(verify_jwt_token)):
 async def deleteEvent(token_data: TokenData = Depends(verify_jwt_token)):
     if isinstance(token_data, JSONResponse):
         return token_data
-    con, cursor = connectMySQLserver()
+    con, cursor = db()
     if cursor is not None:
         try: 
              # 先取得 Booking 內的資料
@@ -408,7 +418,7 @@ async def thankyou(request: Request):
 
 @app.get("/api/attractions")
 def get_attractions(page: int = 0, keyword: Optional[str] = Query(None)):
-    con, cursor = connectMySQLserver()
+    con, cursor = db()
     if cursor is not None:
        try:
             offset = page * 12
@@ -469,7 +479,16 @@ def get_attractions(page: int = 0, keyword: Optional[str] = Query(None)):
     
 @app.get("/api/attraction/{attractionId}")
 def get_attraction(attractionId: int):
-    con, cursor = connectMySQLserver()
+    # cache_key = f"attraction:{attractionId}"
+
+    # if is_redis_available():
+    #     cached_result = redis_client.get(cache_key)
+    #     if cached_result:
+    #         print("Use Redis Cache!")
+    #         # print(cached_result)
+    #         return JSONResponse(status_code=200, content={"data": json.loads(cached_result)})
+    
+    con, cursor = db()
     if cursor is not None:
         try:
             cursor.execute("SELECT * FROM Attraction WHERE id = %s", (attractionId,))
@@ -503,6 +522,9 @@ def get_attraction(attractionId: int):
                 "images": images
             }
 
+            # if is_redis_available():
+            #     # redis_client.setex(cache_key, timedelta(minutes=10), json.dumps(result))
+            #     redis_client.set(cache_key, json.dumps(result), ex=300)
             return {"data": result}
         except Exception as err:
             return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
@@ -514,7 +536,7 @@ def get_attraction(attractionId: int):
 
 @app.get("/api/mrts")
 def get_mrts():
-    con, cursor = connectMySQLserver()
+    con, cursor = db()
     if cursor is not None:
         try:
             cursor.execute("SELECT mrt, count(mrt) FROM Attraction GROUP BY mrt ORDER BY count(mrt) DESC")
@@ -530,22 +552,3 @@ def get_mrts():
             con.close()
     else:
         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
-    
-#程式關閉或登出後將Connection Pool關閉
-def close_connection_pool():
-    pool.close()
-
-def connectMySQLserver():
-    try:
-        con = pool.get_connection()
-        if con.is_connected():
-            cursor = con.cursor()
-            # print("資料庫連線成功")
-            return con, cursor
-        else:
-            print("資料庫連線未成功")
-            return None, None 
-    
-    except Error as e:
-        print("資料庫連線失敗:", e)
-        return None, None

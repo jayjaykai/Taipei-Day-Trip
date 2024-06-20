@@ -170,7 +170,7 @@ async function onSubmit(event) {
                 return;
             }
             let prime = result.card.prime;
-            alert('get prime 成功，prime: ' + result.card.prime);
+            // alert('get prime 成功，prime: ' + result.card.prime);
 
             // send prime to your server, to pay with Pay by Prime API .
             // Pay By Prime Docs: https://docs.tappaysdk.com/tutorial/zh/back.html#pay-by-prime-api
@@ -201,7 +201,7 @@ async function onSubmit(event) {
             };
             // console.log("Request body:", data);
             token = localStorage.getItem('token');
-            let response = await fetch('http://127.0.0.1:8000/api/orders', {
+            let response = await fetch('http://54.79.121.157:8000/api/orders', {
                 method: 'POST',
                 headers:{
                     'Content-Type': 'application/json',
@@ -220,7 +220,7 @@ async function onSubmit(event) {
             else{
                 // console.log("Result: ", getOrdersResult);
                 alert("付款成功！")
-                // deleteFetch();
+                deleteFetch();
                 enableInteraction();
                 // window.location.href = `/booking`;
             }
