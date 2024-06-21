@@ -1,6 +1,7 @@
 from typing import Optional, Union
-from dbconfig import db, db_close
+from dbconfig import db
 from fastapi import *
+from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import OAuth2PasswordBearer
@@ -15,7 +16,7 @@ import jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from datetime import datetime, timedelta, timezone
 import requests
-import redis
+# import redis
 import json
 
 secret_key="dfjewkjfejwfjiewfjoewjfioewjf"
@@ -61,18 +62,7 @@ TAPPAY_MERCHANT_ID = os.getenv("TAPPAY_MERCHANT_ID")
 #         print("Redis is None!")
 #         return None
 
-# redis_client = create_redis_client()
-
-# def is_redis_available():
-#     global redis_client
-#     if redis_client is None:
-#         return False
-#     try:
-#         redis_client.ping()
-#         return True
-#     except redis.ConnectionError:
-#         redis_client = None
-#         return False
+db.create_redis_client()
 
 # JWT setting
 SECRET_KEY = "sfegrehrtwerwet54h5jtyfgdfgergerg"
@@ -189,7 +179,7 @@ def verify_jwt_token(token: str = Depends(oauth2_scheme)) -> Union[TokenData, JS
     
 @app.put("/api/user/auth")
 async def login(user: User):
-    con, cursor = db()
+    con, cursor = db.connect_mysql_server()
     if cursor is not None:
         try:
             # print(user.email)
@@ -224,7 +214,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.post("/api/user")
 async def signOn(user: SignOnInfo):
-    con, cursor = db()
+    con, cursor = db.connect_mysql_server()
     if cursor is not None:
         try:
             # print(user.name)
@@ -264,7 +254,7 @@ async def checkUser(token_data: TokenData = Depends(verify_jwt_token)) :
 async def bookEvent(booking_data: BookingData, token_data: TokenData = Depends(verify_jwt_token)):
     if isinstance(token_data, JSONResponse):
         return token_data
-    con, cursor = db()
+    con, cursor = db.connect_mysql_server()
     if cursor is not None:
         try: 
             cursor.execute("insert into Booking(attractionId, userId, date, timeSlot, price) values(%s, %s, %s, %s, %s)", 
@@ -286,7 +276,7 @@ async def bookEvent(booking_data: BookingData, token_data: TokenData = Depends(v
 async def getEvent(token_data: TokenData = Depends(verify_jwt_token)):
     if isinstance(token_data, JSONResponse):
         return token_data
-    con, cursor = db()
+    con, cursor = db.connect_mysql_server()
     if cursor is not None:
         try:
             Result = [] 
@@ -336,7 +326,7 @@ async def getEvent(token_data: TokenData = Depends(verify_jwt_token)):
 async def deleteEvent(token_data: TokenData = Depends(verify_jwt_token)):
     if isinstance(token_data, JSONResponse):
         return token_data
-    con, cursor = db()
+    con, cursor = db.connect_mysql_server()
     if cursor is not None:
         try: 
              # 先取得 Booking 內的資料
@@ -418,7 +408,7 @@ async def thankyou(request: Request):
 
 @app.get("/api/attractions")
 def get_attractions(page: int = 0, keyword: Optional[str] = Query(None)):
-    con, cursor = db()
+    con, cursor = db.connect_mysql_server()
     if cursor is not None:
        try:
             offset = page * 12
@@ -479,16 +469,16 @@ def get_attractions(page: int = 0, keyword: Optional[str] = Query(None)):
     
 @app.get("/api/attraction/{attractionId}")
 def get_attraction(attractionId: int):
-    # cache_key = f"attraction:{attractionId}"
+    cache_key = f"attraction:{attractionId}"
 
-    # if is_redis_available():
-    #     cached_result = redis_client.get(cache_key)
-    #     if cached_result:
-    #         print("Use Redis Cache!")
-    #         # print(cached_result)
-    #         return JSONResponse(status_code=200, content={"data": json.loads(cached_result)})
+    if db.is_redis_available():
+        cached_result = db.redis_client.get(cache_key)
+        if cached_result:
+            print("Use Redis Cache!")
+            # print(cached_result)
+            return JSONResponse(status_code=200, content={"data": json.loads(cached_result)})
     
-    con, cursor = db()
+    con, cursor = db.connect_mysql_server()
     if cursor is not None:
         try:
             cursor.execute("SELECT * FROM Attraction WHERE id = %s", (attractionId,))
@@ -522,9 +512,9 @@ def get_attraction(attractionId: int):
                 "images": images
             }
 
-            # if is_redis_available():
-            #     # redis_client.setex(cache_key, timedelta(minutes=10), json.dumps(result))
-            #     redis_client.set(cache_key, json.dumps(result), ex=300)
+            if db.is_redis_available():
+                # redis_client.setex(cache_key, timedelta(minutes=10), json.dumps(result))
+                db.redis_client.set(cache_key, json.dumps(result), ex=300)
             return {"data": result}
         except Exception as err:
             return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
@@ -536,7 +526,7 @@ def get_attraction(attractionId: int):
 
 @app.get("/api/mrts")
 def get_mrts():
-    con, cursor = db()
+    con, cursor = db.connect_mysql_server()
     if cursor is not None:
         try:
             cursor.execute("SELECT mrt, count(mrt) FROM Attraction GROUP BY mrt ORDER BY count(mrt) DESC")
