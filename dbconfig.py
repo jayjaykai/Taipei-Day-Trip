@@ -61,14 +61,12 @@ class DBConfig:
             )
             client.ping()
             print("Redis client done!")
-            self.redis_client = client
+            return client
         except redis.ConnectionError:
             print("Redis is None!")
-            self.redis_client = None
+            return None
 
     def is_redis_available(self):
-        if self.redis_client is None:
-            self.initialize_redis_client()
         if self.redis_client is None:
             return False
         try:
@@ -79,3 +77,4 @@ class DBConfig:
             return False
 
 db = DBConfig()
+db.redis_client = db.create_redis_client()

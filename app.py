@@ -16,7 +16,6 @@ import jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from datetime import datetime, timedelta, timezone
 import requests
-# import redis
 import json
 
 secret_key="dfjewkjfejwfjiewfjoewjfioewjf"
@@ -61,8 +60,17 @@ TAPPAY_MERCHANT_ID = os.getenv("TAPPAY_MERCHANT_ID")
 #     except redis.ConnectionError:
 #         print("Redis is None!")
 #         return None
-
-db.create_redis_client()
+# redis_client=create_redis_client()
+# def is_redis_available():
+#     global redis_client
+#     if redis_client is None:
+#         return False
+#     try:
+#         redis_client.ping()
+#         return True
+#     except redis.ConnectionError:
+#         redis_client = None
+#         return False
 
 # JWT setting
 SECRET_KEY = "sfegrehrtwerwet54h5jtyfgdfgergerg"
