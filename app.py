@@ -200,7 +200,8 @@ async def login(user: User):
                 print(f"User: {data[0]}")
                 print(f"User email: {user.email}")
                 access_token = create_access_token(
-                    data={"userID": str(data[0]), "username": data[1], "email": data[2]}, expires_delta = timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
+                    data={"userID": str(data[0]), "username": data[1], "email": data[2]}, 
+                    expires_delta = timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
                 )
                 return {"token": access_token}
             else:
@@ -416,64 +417,72 @@ async def thankyou(request: Request):
 
 @app.get("/api/attractions")
 def get_attractions(page: int = 0, keyword: Optional[str] = Query(None)):
-    con, cursor = db.connect_mysql_server()
-    if cursor is not None:
-       try:
-            offset = page * 12
-            query = "SELECT * FROM Attraction"
-            params = []
-            
-            if keyword:
-                query += " WHERE name LIKE %s OR mrt = %s"
-                params.extend([f"%{keyword}%", keyword])
-                
-            query += " LIMIT %s OFFSET %s"
-            params.extend([12, offset])
-            
-            print(query)
-            cursor.execute(query, tuple(params))
-            attractions = cursor.fetchall()
-            
-            if not attractions:
-                return {"nextPage": None, "data": []}
-            
-            if len(attractions) == 12:
-                next_page = page + 1
-            else:
-                next_page = None
-            
-            result = []
-            for attraction in attractions:
-                images = []
-                id, name, category, description, address, direction, mrt, latitude, longitude, image_urls, rate, avBegin, avEnd = attraction
-                if image_urls:
-                    urls = image_urls.split(',')
-                    for url in urls:
-                        if url.lower().endswith(('jpg', 'png')):
-                            images.append(url)
-                else:
-                    images = []
+    cache_key = f"indexpagecache#{page}_keyword_{keyword}"
+    if db.is_redis_available():
+        cached_data = db.redis_client.get(cache_key)
 
-                result.append({
-                    "id": id,
-                    "name": name,
-                    "category": category,
-                    "description": description,
-                    "address": address,
-                    "transport": direction,
-                    "mrt": mrt,
-                    "lat": latitude,
-                    "lng": longitude,
-                    "images": images
-                })
-            
-            return {"nextPage": next_page, "data": result}
-       except Exception as err:
-            return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
-       finally:
-            con.close()
+    if cached_data:
+        print(f"Get Index Page{page}Cache!")
+        return json.loads(cached_data)
     else:
-        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+        con, cursor = db.connect_mysql_server()
+        if cursor is not None:
+            try:
+                    offset = page * 12
+                    query = "SELECT * FROM Attraction"
+                    params = []
+                    
+                    if keyword:
+                        query += " WHERE name LIKE %s OR mrt = %s"
+                        params.extend([f"%{keyword}%", keyword])
+                        
+                    query += " LIMIT %s OFFSET %s"
+                    params.extend([12, offset])
+                    
+                    print(query)
+                    cursor.execute(query, tuple(params))
+                    attractions = cursor.fetchall()
+                    
+                    if not attractions:
+                        return {"nextPage": None, "data": []}
+                    
+                    if len(attractions) == 12:
+                        next_page = page + 1
+                    else:
+                        next_page = None
+                    
+                    result = []
+                    for attraction in attractions:
+                        images = []
+                        id, name, category, description, address, direction, mrt, latitude, longitude, image_urls, rate, avBegin, avEnd = attraction
+                        if image_urls:
+                            urls = image_urls.split(',')
+                            for url in urls:
+                                if url.lower().endswith(('jpg', 'png')):
+                                    images.append(url)
+                        else:
+                            images = []
+
+                        result.append({
+                            "id": id,
+                            "name": name,
+                            "category": category,
+                            "description": description,
+                            "address": address,
+                            "transport": direction,
+                            "mrt": mrt,
+                            "lat": latitude,
+                            "lng": longitude,
+                            "images": images
+                        })
+                    db.redis_client.set(cache_key, json.dumps({"nextPage": next_page, "data": result}), ex=600)
+                    return {"nextPage": next_page, "data": result}
+            except Exception as err:
+                    return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+            finally:
+                    con.close()
+        else:
+            return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
     
 @app.get("/api/attraction/{attractionId}")
 def get_attraction(attractionId: int):

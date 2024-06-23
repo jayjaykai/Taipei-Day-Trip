@@ -67,6 +67,8 @@ class DBConfig:
             return None
 
     def is_redis_available(self):
+        # if self.redis_client is None:
+        #     self.redis_client = self.create_redis_client()
         if self.redis_client is None:
             return False
         try:
