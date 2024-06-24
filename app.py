@@ -266,11 +266,13 @@ async def bookEvent(booking_data: BookingData, token_data: TokenData = Depends(v
     con, cursor = db.connect_mysql_server()
     if cursor is not None:
         try: 
+            # 先確認user有沒有booking event, 有的話取代掉原本的booking event
+            travel_time = "上午" if booking_data.travel_time.lower() == "morning" else "下午" if booking_data.travel_time.lower() == "afternoon" else None
             cursor.execute("insert into Booking(attractionId, userId, date, timeSlot, price) values(%s, %s, %s, %s, %s)", 
                            (booking_data.attraction_id,
                             token_data.userID,
                             booking_data.date if booking_data.date else None, 
-                            booking_data.travel_time, 
+                            travel_time, 
                             booking_data.tour_price))
             con.commit()
             return JSONResponse(status_code=200, content={"ok": True})

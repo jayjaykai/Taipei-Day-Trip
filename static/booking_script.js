@@ -25,7 +25,7 @@ async function execute(){
     try{
         // getUserData()
         let token = localStorage.getItem('token');
-        let response = await fetch('http://54.79.121.157:8000/api/user/auth', {
+        let authResponse = await fetch('http://54.79.121.157:8000/api/user/auth', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -33,16 +33,18 @@ async function execute(){
             }
         });
 
-        let result = await response.json();
-        if (!response.ok){
-            console.error('HTTP error', response.status);
-            alert(result.message);
+        let authResult = await authResponse.json();
+        if (!authResponse.ok){
+            console.error('HTTP error', authResponse.status);
+            alert(authResult.message);
             return;
         }
+        document.getElementById('contactName').value = authResult.data.name;
+        document.getElementById('contactEmail').value= authResult.data.email;
 
         // console.log(result.data);
         let username = document.getElementById('username');
-        username.textContent = "您好，" + result.data.name + "，待預訂的行程如下：";
+        username.textContent = "您好，" + authResult.data.name + "，待預訂的行程如下：";
 
 
         //getUserBookingData

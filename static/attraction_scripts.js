@@ -146,8 +146,28 @@ function updatePrice(radio) {
 }
 
 async function reserveTravel(){
-    try{
+    try
+    {
         let token = localStorage.getItem('token');
+        if(!token){
+            let modal = document.getElementById('loginModal');
+            modal.showModal();
+            return;
+        }
+        let authResponse = await fetch('http://54.79.121.157:8000/api/user/auth', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+    
+        if (!authResponse.ok) {
+            let authResult = await authResponse.json();
+            alert(authResult.message);
+            return;
+        }
+
         let date = document.getElementById('date').value;
         let travelTime = selectedTime;
         let tourPrice = document.getElementById('tour-price').innerText;
@@ -174,7 +194,8 @@ async function reserveTravel(){
             return;
         }
 
-        alert('預約成功！');
+        // alert('預約成功！');
+        window.location.href = `/booking`;
     }
     catch(error){
         console.error('Booking error:', error);
