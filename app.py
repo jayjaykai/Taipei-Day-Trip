@@ -266,14 +266,39 @@ async def bookEvent(booking_data: BookingData, token_data: TokenData = Depends(v
     con, cursor = db.connect_mysql_server()
     if cursor is not None:
         try: 
-            # 先確認user有沒有booking event, 有的話取代掉原本的booking event
+             # 先確認user有沒有booking event, 有的話取代掉原本的booking event
             travel_time = "上午" if booking_data.travel_time.lower() == "morning" else "下午" if booking_data.travel_time.lower() == "afternoon" else None
-            cursor.execute("insert into Booking(attractionId, userId, date, timeSlot, price) values(%s, %s, %s, %s, %s)", 
-                           (booking_data.attraction_id,
-                            token_data.userID,
-                            booking_data.date if booking_data.date else None, 
-                            travel_time, 
-                            booking_data.tour_price))
+            cursor.execute("select * from Booking where userId = %s", (token_data.userID,))
+            data = cursor.fetchone()
+            if data:
+                print("Has data!")
+                cursor.execute(
+                    "update Booking set attractionId = %s, date = %s, timeSlot = %s, price = %s where userId = %s",
+                    (
+                        booking_data.attraction_id,
+                        booking_data.date if booking_data.date else None,
+                        travel_time,
+                        booking_data.tour_price,
+                        token_data.userID
+                    )
+                )
+            else:
+                print("Has no data!")
+                print(booking_data.attraction_id)
+                print(token_data.userID)
+                print(booking_data.date)
+                print(travel_time)
+                print(booking_data.tour_price)
+                cursor.execute(
+                    "insert into Booking(attractionId, userId, date, timeSlot, price) values(%s, %s, %s, %s, %s)", 
+                    (
+                        booking_data.attraction_id,
+                        token_data.userID,
+                        booking_data.date if booking_data.date else None, 
+                        travel_time, 
+                        booking_data.tour_price
+                    )
+                )
             con.commit()
             return JSONResponse(status_code=200, content={"ok": True})
         except Exception as err:

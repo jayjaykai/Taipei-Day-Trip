@@ -41,7 +41,6 @@ async function execute(){
         }
         document.getElementById('contactName').value = authResult.data.name;
         document.getElementById('contactEmail').value= authResult.data.email;
-
         // console.log(result.data);
         let username = document.getElementById('username');
         username.textContent = "您好，" + authResult.data.name + "，待預訂的行程如下：";
