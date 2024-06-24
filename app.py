@@ -410,9 +410,9 @@ async def create_order(payment_request: PaymentRequest, token_data: TokenData = 
         }
         response = requests.post(TAPPAY_API_URL, json=payload, headers=headers)
         # print(response.json())
-        # print(response.json()['rec_trade_id'])
-        # print(response.json()['status'])
-        # print(response.json()['msg'])
+        print(response.json()['rec_trade_id'])
+        print(response.json()['status'])
+        print(response.json()['msg'])
         Result = {
             "number": response.json()['rec_trade_id'],
             "payment": {

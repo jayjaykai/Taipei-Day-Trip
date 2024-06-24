@@ -59,16 +59,17 @@
       <div class="tpfield" id="card-ccv"></div> -->
       <div class="form-group">
         <span id="cardtype">卡片號碼：</span>
-        <div class="tpfield" id="card-number" contenteditable="true" placeholder="請輸入卡片號碼" required></div>
+        <div class="tpfield" id="card-number" placeholder="請輸入卡片號碼" required></div>
       </div>
       <div class="form-group">
         <span id="cardtype">過期時間：</span>
-        <div class="tpfield" id="card-expiration-date" contenteditable="true" placeholder="請輸入卡片過期時間" required></div>
+        <div class="tpfield" id="card-expiration-date" placeholder="請輸入卡片過期時間" required></div>
       </div>
       <div class="form-group">
         <span id="cardtype">驗證密碼：</span>
-        <div class="tpfield" id="card-ccv" contenteditable="true" placeholder="請輸入驗證密碼" required></div>
+        <div class="tpfield" id="card-ccv" placeholder="請輸入驗證密碼" required></div>
       </div>
+
       <!-- <div>卡片號碼：
         <input type="text" id="cardnumber" placeholder="請輸入卡片號碼" required>
       </div>
@@ -81,14 +82,15 @@
     </div>
     <hr class="hr3">
     <div class="confirm">
-      <div>總價：新台幣 2000 元</div>
+      <div>總價：<span id="finalPrice"></span></div>
       <button onclick="onSubmit(event)">確認訂購並付款</button>
     </div>
     <footer class="footer">COPYRIGHT © 2021 台北一日遊</footer>
   </div>
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  <script src="https://js.tappaysdk.com/sdk/tpdirect/v5.18.0"></script>
   <script src="/static/dialog_script.js" defer></script>
   <script src="/static/booking_script.js" defer></script>
-  <script src="https://js.tappaysdk.com/sdk/tpdirect/v5.18.0" defer></script>
   <script src="/static/tapPay.scripts.js" defer></script>
 </body>
 </html>

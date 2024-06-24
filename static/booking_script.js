@@ -3,6 +3,7 @@ let spotName = document.getElementById('spotName');
 let spotDay = document.getElementById('spotDay');
 let spotTime = document.getElementById('spotTime');
 let spotPrice = document.getElementById('spotPrice');
+let finalPrice = document.getElementById('finalPrice');
 let price = "";
 let spotPlace = document.getElementById('spotPlace');
 let spotId = "";
@@ -16,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // getUserBookingData();
         execute();
     } else {
-        alert('請先登入會員帳戶');
+        //alert('請先登入會員帳戶');
         window.location.href = `/`;
     }
 });
@@ -81,6 +82,7 @@ async function execute(){
             spotDay.textContent = result.data.date;
             spotTime.textContent = result.data.time;
             spotPrice.textContent = "新台幣 " + result.data.price + " 元";
+            finalPrice.textContent = "新台幣 " + result.data.price + " 元";
             price = result.data.price;
             spotPlace.textContent = result.data.attraction.address;
             spotId = result.data.attraction.id;
@@ -131,28 +133,28 @@ async function deleteEvent(){
     }
 }
 
-function disableInteraction() {
-    document.getElementById('card-number').setAttribute('contenteditable', 'false');
-    document.getElementById('card-expiration-date').setAttribute('contenteditable', 'false');
-    document.getElementById('card-ccv').setAttribute('contenteditable', 'false');
-    document.querySelectorAll('button, input').forEach(element => {
-        element.disabled = true;
-    });
-}
+// function disableInteraction() {
+//     document.getElementById('card-number').setAttribute('contenteditable', 'false');
+//     document.getElementById('card-expiration-date').setAttribute('contenteditable', 'false');
+//     document.getElementById('card-ccv').setAttribute('contenteditable', 'false');
+//     document.querySelectorAll('button, input').forEach(element => {
+//         element.disabled = true;
+//     });
+// }
 
-function enableInteraction() {
-    document.getElementById('card-number').setAttribute('contenteditable', 'true');
-    document.getElementById('card-expiration-date').setAttribute('contenteditable', 'true');
-    document.getElementById('card-ccv').setAttribute('contenteditable', 'true');
-    document.querySelectorAll('button, input').forEach(element => {
-        element.disabled = false;
-    });
-}
+// function enableInteraction() {
+//     document.getElementById('card-number').setAttribute('contenteditable', 'true');
+//     document.getElementById('card-expiration-date').setAttribute('contenteditable', 'true');
+//     document.getElementById('card-ccv').setAttribute('contenteditable', 'true');
+//     document.querySelectorAll('button, input').forEach(element => {
+//         element.disabled = false;
+//     });
+// }
 
 async function onSubmit(event) {
     event.preventDefault();
     // 禁止使用者在進行期間點選其他的按鈕
-    disableInteraction();
+    //disableInteraction();
     if (confirm("是否確認要訂購並付款？")){
          // 取得 TapPay Fields 的 status
         const tappayStatus = TPDirect.card.getTappayFieldsStatus();
@@ -160,14 +162,14 @@ async function onSubmit(event) {
         // 確認是否可以 getPrime
         if (tappayStatus.canGetPrime === false) {
             alert('can not get prime');
-            enableInteraction();
+            //enableInteraction();
             return;
         }
         // Get prime and fetch service
         TPDirect.card.getPrime(async(result) => {
             if (result.status !== 0) {
                 alert('get prime error ' + result.msg);
-                enableInteraction();
+                //enableInteraction();
                 return;
             }
             let prime = result.card.prime;
@@ -215,20 +217,20 @@ async function onSubmit(event) {
             if(!response.ok){
                 console.error('HTTP error', response.status);
                 alert(getOrdersResult.message);
-                enableInteraction();
+                //enableInteraction();
                 return;
             }
             else{
                 // console.log("Result: ", getOrdersResult);
                 alert("付款成功！")
                 deleteFetch();
-                enableInteraction();
+                //enableInteraction();
                 // window.location.href = `/booking`;
             }
         });
     }
     else{
-        enableInteraction();
+        //enableInteraction();
         return;
     }
 }

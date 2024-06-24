@@ -1,3 +1,4 @@
+TPDirect.setupSDK(151148, 'app_NRKxxIMkHz4HbAmtkuu3hZZHPh1S0njrXw1vZK9EYMbmLFIeRCYxGqgBGxdY', 'sandbox') // APP_ID: 151148 APP_KEY:app_NRKxxIMkHz4HbAmtkuu3hZZHPh1S0njrXw1vZK9EYMbmLFIeRCYxGqgBGxdY
 // 以下提供必填 CCV 以及選填 CCV 的 Example
 // 必填 CCV Example
 var fields = {
@@ -64,49 +65,59 @@ TPDirect.card.setup({
     }
 })
 
-TPDirect.card.onUpdate(function (update) {
+document.addEventListener("DOMContentLoaded", function() {
+    // listen for TapPay Field
+    TPDirect.card.onUpdate(function (update) {
+    /* Disable / enable submit button depend on update.canGetPrime  */
+    /* ============================================================ */
+
     // update.canGetPrime === true
-    // --> you can call TPDirect.card.getPrime()
-    if (update.canGetPrime) {
-        // Enable submit Button to get prime.
-        // submitButton.removeAttribute('disabled')
-    } else {
-        // Disable submit Button to get prime.
-        // submitButton.setAttribute('disabled', true)
-    }
-                                            
-    // cardTypes = ['mastercard', 'visa', 'jcb', 'amex', 'unknown']
-    if (update.cardType === 'visa') {
-        // Handle card type visa.
-    }
+    //     --> you can call TPDirect.card.getPrime()
+    // const submitButton = document.querySelector('button[type="submit"]')
+        if (update.canGetPrime) {
+            // submitButton.removeAttribute('disabled')
+            $('button[type="submit"]').removeAttr('disabled')
+        } else {
+            // submitButton.setAttribute('disabled', true)
+            $('button[type="submit"]').attr('disabled', true)
+        }
 
-    // number 欄位是錯誤的
-    if (update.status.number === 2) {
-        // setNumberFormGroupToError()
-    } else if (update.status.number === 0) {
-        // setNumberFormGroupToSuccess()
-    } else {
-        // setNumberFormGroupToNormal()
-    }
-    
-    if (update.status.expiry === 2) {
-        // setNumberFormGroupToError()
-    } else if (update.status.expiry === 0) {
-        // setNumberFormGroupToSuccess()
-    } else {
-        // setNumberFormGroupToNormal()
-    }
-    
-    if (update.status.ccv === 2) {
-        // setNumberFormGroupToError()
-    } else if (update.status.ccv === 0) {
-        // setNumberFormGroupToSuccess()
-    } else {
-        // setNumberFormGroupToNormal()
-    }
-})
 
-// call TPDirect.card.getPrime when user submit form to get tappay prime
-// $('form').on('submit', onSubmit)
+        /* Change card type display when card type change */
+        /* ============================================== */
 
-TPDirect.setupSDK(151148, 'app_NRKxxIMkHz4HbAmtkuu3hZZHPh1S0njrXw1vZK9EYMbmLFIeRCYxGqgBGxdY', 'sandbox') // APP_ID: 151148 APP_KEY:app_NRKxxIMkHz4HbAmtkuu3hZZHPh1S0njrXw1vZK9EYMbmLFIeRCYxGqgBGxdY
+        // cardTypes = ['visa', 'mastercard', ...]
+        // var newType = update.cardType === 'unknown' ? '' : update.cardType
+        // $('#cardtype').text(newType)
+
+
+
+        /* Change form-group style when tappay field status change */
+        /* ======================================================= */
+
+        // number 欄位是錯誤的
+        if (update.status.number === 2) {
+            setNumberFormGroupToError('.card-number-group')
+        } else if (update.status.number === 0) {
+            setNumberFormGroupToSuccess('.card-number-group')
+        } else {
+            setNumberFormGroupToNormal('.card-number-group')
+        }
+
+        if (update.status.expiry === 2) {
+            setNumberFormGroupToError('.expiration-date-group')
+        } else if (update.status.expiry === 0) {
+            setNumberFormGroupToSuccess('.expiration-date-group')
+        } else {
+            setNumberFormGroupToNormal('.expiration-date-group')
+        }
+
+        if (update.status.ccv === 2) {
+            setNumberFormGroupToError('.ccv-group')
+        } else if (update.status.ccv === 0) {
+            setNumberFormGroupToSuccess('.ccv-group')
+        } else {
+            setNumberFormGroupToNormal('.ccv-group')
+        }
+    })
+});
