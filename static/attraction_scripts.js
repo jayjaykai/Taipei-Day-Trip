@@ -154,19 +154,19 @@ async function reserveTravel(){
             modal.showModal();
             return;
         }
-        let authResponse = await fetch('http://54.79.121.157:8000/api/user/auth', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
-        });
+        // let authResponse = await fetch('http://54.79.121.157:8000/api/user/auth', {
+        //     method: 'GET',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //         'Authorization': `Bearer ${token}`
+        //     }
+        // });
     
-        if (!authResponse.ok) {
-            let authResult = await authResponse.json();
-            alert(authResult.message);
-            return;
-        }
+        // if (!authResponse.ok) {
+        //     let authResult = await authResponse.json();
+        //     alert(authResult.message);
+        //     return;
+        // }
 
         let date = document.getElementById('date').value;
         let travelTime = selectedTime;

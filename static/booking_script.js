@@ -25,26 +25,26 @@ document.addEventListener("DOMContentLoaded", function() {
 async function execute(){
     try{
         // getUserData()
-        let token = localStorage.getItem('token');
-        let authResponse = await fetch('http://54.79.121.157:8000/api/user/auth', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
-        });
+        // let token = localStorage.getItem('token');
+        // let authResponse = await fetch('http://54.79.121.157:8000/api/user/auth', {
+        //     method: 'GET',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //         'Authorization': `Bearer ${token}`
+        //     }
+        // });
 
-        let authResult = await authResponse.json();
-        if (!authResponse.ok){
-            console.error('HTTP error', authResponse.status);
-            alert(authResult.message);
-            return;
-        }
-        document.getElementById('contactName').value = authResult.data.name;
-        document.getElementById('contactEmail').value= authResult.data.email;
-        // console.log(result.data);
-        let username = document.getElementById('username');
-        username.textContent = "您好，" + authResult.data.name + "，待預訂的行程如下：";
+        // let authResult = await authResponse.json();
+        // if (!authResponse.ok){
+        //     console.error('HTTP error', authResponse.status);
+        //     alert(authResult.message);
+        //     return;
+        // }
+        // document.getElementById('contactName').value = authResult.data.name;
+        // document.getElementById('contactEmail').value= authResult.data.email;
+        // // console.log(result.data);
+        // let username = document.getElementById('username');
+        // username.textContent = "您好，" + authResult.data.name + "，待預訂的行程如下：";
 
 
         //getUserBookingData
@@ -60,7 +60,7 @@ async function execute(){
         result = await response.json();
         if(!response.ok){
             console.error('HTTP error', response.status);
-            alert(result.message);
+            // alert(result.message);
             return;
         }
         // console.log(result.data);

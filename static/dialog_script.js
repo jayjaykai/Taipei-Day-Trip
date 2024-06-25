@@ -210,12 +210,17 @@ async function checkToken() {
             logoutButton.style.display = 'none';
             alert(result.message);
             localStorage.removeItem('token');
-            return;
+            window.location.href = `/`;
         }
-        // console.log("User data: ",result.data);
-
         loginButton.style.display = 'none';
         logoutButton.style.display = 'inline';
+
+        if (window.location.pathname === '/booking') {
+            document.getElementById('contactName').value = result.data.name;
+            document.getElementById('contactEmail').value = result.data.email;
+            let username = document.getElementById('username');
+            username.textContent = "您好，" + result.data.name + "，待預訂的行程如下：";
+        }
     } 
     else{
         loginButton.style.display = 'inline';
