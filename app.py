@@ -271,6 +271,7 @@ async def bookEvent(booking_data: BookingData, token_data: TokenData = Depends(v
             cursor.execute("select * from Booking where userId = %s", (token_data.userID,))
             data = cursor.fetchone()
             if data:
+                cursor.fetchall()
                 print("Has data!")
                 cursor.execute(
                     "update Booking set attractionId = %s, date = %s, timeSlot = %s, price = %s where userId = %s",
@@ -283,6 +284,7 @@ async def bookEvent(booking_data: BookingData, token_data: TokenData = Depends(v
                     )
                 )
             else:
+                cursor.fetchall()
                 print("Has no data!")
                 print(booking_data.attraction_id)
                 print(token_data.userID)
