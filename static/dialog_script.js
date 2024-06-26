@@ -1,81 +1,81 @@
 document.addEventListener('DOMContentLoaded', function() {
     checkToken();
 });
+
+// document.getElementById('loginButton').addEventListener('click', function() {
+//     // 檢查dialog是否存在，不存在使用fetch寫到body最後面
+//     // 登入畫面
+//     showLoginAndSignon();
+// });
+
+// function showLoginAndSignon(){
+//     if (!document.getElementById('loginModal')) {
+//         fetch('/static/login.html')
+//             .then(response => response.text())
+//             .then(html => {
+//                 document.body.insertAdjacentHTML('beforeend', html);
+
+//                 let modal = document.getElementById('loginModal');
+//                 modal.showModal();
+//                 document.getElementById('closeLoginModal').addEventListener('click', function() {
+//                     modal.close();
+//                 });
+//                  // 註冊對話框邏輯
+//                  let showSignon = document.getElementById("showSignon");
+//                  showSignon.addEventListener("click", (event) => {
+//                      event.preventDefault();
+//                      document.getElementById('loginResult').textContent='';
+//                      loginModal.close();
+//                      if (!document.getElementById('signonModal')) {
+//                          fetch('/static/signon.html')
+//                              .then(response => response.text())
+//                              .then(html => {
+//                                  document.body.insertAdjacentHTML('beforeend', html);
+ 
+//                                  let signonModal = document.getElementById('signonModal');
+//                                  let signonContent = signonModal.querySelector('.modal-content');
+//                                  signonContent.classList.add('signon');
+//                                  signonModal.showModal();
+ 
+//                                  document.getElementById('closeSignonModal').addEventListener('click', function() {
+//                                      signonModal.close();
+//                                  });
+ 
+//                                  const showLogin = document.getElementById("showLogin");
+//                                  showLogin.addEventListener("click", (event) => {
+//                                     event.preventDefault();
+//                                     document.getElementById('signonResult').textContent='';
+//                                     signonModal.close();
+//                                     loginModal.showModal();
+//                                  });
+//                              });
+//                      } else {
+//                         let signonModal = document.getElementById('signonModal');
+//                         let signonContent = signonModal.querySelector('.modal-content');
+//                         signonContent.classList.add('signon');
+//                         signonModal.showModal();
+//                      }
+//                  });
+//             });
+//     } else {
+//         document.getElementById('loginModal').showModal();
+//     }
+// }
 document.getElementById('loginButton').addEventListener('click', function() {
-    // 檢查dialog是否存在，不存在使用fetch寫到body最後面
     // 登入畫面
-    if (!document.getElementById('loginModal')) {
-        fetch('/static/login.html')
-            .then(response => response.text())
-            .then(html => {
-                document.body.insertAdjacentHTML('beforeend', html);
-
-                let modal = document.getElementById('loginModal');
-                modal.showModal();
-                document.getElementById('closeLoginModal').addEventListener('click', function() {
-                    modal.close();
-                });
-
-                // 點擊視窗外部關閉視窗
-                // window.addEventListener('click', function(event) {
-                //     if (event.target == modal) {
-                //         modal.close();
-                //     }
-                // });
-
-                 // 註冊對話框邏輯
-                 let showSignon = document.getElementById("showSignon");
-                 showSignon.addEventListener("click", (event) => {
-                     event.preventDefault();
-                     document.getElementById('loginResult').textContent='';
-                     loginModal.close();
-                     if (!document.getElementById('signonModal')) {
-                         fetch('/static/signon.html')
-                             .then(response => response.text())
-                             .then(html => {
-                                 document.body.insertAdjacentHTML('beforeend', html);
- 
-                                 let signonModal = document.getElementById('signonModal');
-                                 let signonContent = signonModal.querySelector('.modal-content');
-                                 signonContent.classList.add('signon');
-                                 signonModal.showModal();
- 
-                                 document.getElementById('closeSignonModal').addEventListener('click', function() {
-                                     signonModal.close();
-                                 });
- 
-                                 const showLogin = document.getElementById("showLogin");
-                                 showLogin.addEventListener("click", (event) => {
-                                    event.preventDefault();
-                                    document.getElementById('signonResult').textContent='';
-                                    signonModal.close();
-                                    loginModal.showModal();
-                                 });
- 
-                                 // 點擊視窗外部關閉視窗
-                                //  window.addEventListener('click', function(event) {
-                                //      if (event.target == signonModal) {
-                                //          signonModal.close();
-                                //      }
-                                //  });
-                             });
-                     } else {
-                        let signonModal = document.getElementById('signonModal');
-                        let signonContent = signonModal.querySelector('.modal-content');
-                        signonContent.classList.add('signon');
-                        signonModal.showModal();
-                     }
-                 });
-            });
-    } else {
-        document.getElementById('loginModal').showModal();
-    }
+    showLoginAndSignon();
 });
+
+function showLoginAndSignon(){
+    let modal = document.getElementById('loginModal');
+    modal.showModal();
+}
 
 async function bookEvent() {
     let token = localStorage.getItem('token');
     if(!token){
-        alert('請先登入會員帳戶');
+        showLoginAndSignon();
+        // alert('請先登入會員帳戶');
         return;
     }
     let response = await fetch('http://54.79.121.157:8000/api/user/auth', {
@@ -210,12 +210,17 @@ async function checkToken() {
             logoutButton.style.display = 'none';
             alert(result.message);
             localStorage.removeItem('token');
-            return;
+            window.location.href = `/`;
         }
-        // console.log("User data: ",result.data);
-
         loginButton.style.display = 'none';
         logoutButton.style.display = 'inline';
+
+        if (window.location.pathname === '/booking') {
+            document.getElementById('contactName').value = result.data.name;
+            document.getElementById('contactEmail').value = result.data.email;
+            let username = document.getElementById('username');
+            username.textContent = "您好，" + result.data.name + "，待預訂的行程如下：";
+        }
     } 
     else{
         loginButton.style.display = 'inline';
@@ -227,9 +232,55 @@ function logout(){
     if (confirm("確認要登出系統嗎？")){
         localStorage.removeItem('token');
         checkToken();
+        window.location.href = `/`;
     }
     else
     {
         return;
     }
 }
+
+fetch('/static/login.html')
+    .then(response => response.text())
+    .then(html => {
+        document.body.insertAdjacentHTML('beforeend', html);
+        document.getElementById('closeLoginModal').addEventListener('click', function() {
+            document.getElementById('loginModal').close();
+        });
+        // 註冊對話框邏輯
+        let showSignon = document.getElementById("showSignon");
+        showSignon.addEventListener("click", (event) => {
+            event.preventDefault();
+            document.getElementById('loginResult').textContent='';
+            loginModal.close();
+            if (!document.getElementById('signonModal')) {
+                fetch('/static/signon.html')
+                    .then(response => response.text())
+                    .then(html => {
+                        document.body.insertAdjacentHTML('beforeend', html);
+
+                        let signonModal = document.getElementById('signonModal');
+                        let signonContent = signonModal.querySelector('.modal-content');
+                        signonContent.classList.add('signon');
+                        signonModal.showModal();
+
+                        document.getElementById('closeSignonModal').addEventListener('click', function() {
+                            signonModal.close();
+                        });
+
+                        const showLogin = document.getElementById("showLogin");
+                        showLogin.addEventListener("click", (event) => {
+                           event.preventDefault();
+                           document.getElementById('signonResult').textContent='';
+                           signonModal.close();
+                           loginModal.showModal();
+                        });
+                    });
+            } else {
+               let signonModal = document.getElementById('signonModal');
+               let signonContent = signonModal.querySelector('.modal-content');
+               signonContent.classList.add('signon');
+               signonModal.showModal();
+            }
+        });
+    });

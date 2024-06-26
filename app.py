@@ -1,29 +1,30 @@
 from typing import Optional, Union
+from dbconfig import db
 from fastapi import *
+from fastapi import Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.staticfiles import StaticFiles
 from jose import ExpiredSignatureError, JWTError
-import mysql.connector
-from mysql.connector import Error
 import os
 from dotenv import load_dotenv
-from mysql.connector.pooling import MySQLConnectionPool
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 import hashlib
 import jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from datetime import datetime, timedelta, timezone
+import requests
+import json
 
 secret_key="dfjewkjfejwfjiewfjoewjfioewjf"
 
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
-# app.mount("/static", StaticFiles(directory="/home/ubuntu/tdt/static"), name="static")
 load_dotenv()
-# load_dotenv('/home/ubuntu/tdt/.env')
+
 # 設定可存取資源的來源端點
 origins = [
     "http://127.0.0.1:8000",
@@ -37,31 +38,40 @@ app.add_middleware(
     allow_headers=["*"],  # 允許所有HTTP headers
 )
 
-
-print("DB_HOST:", os.getenv("DB_HOST"))
-print("DB_USER:", os.getenv("DB_USER"))
-print("DB_PASSWORD:", os.getenv("DB_PASSWORD"))
-print("DB_NAME:", os.getenv("DB_NAME"))
-
-pool_size_str = os.getenv("POOL_SIZE")
-if pool_size_str is None:
-    pool_size = 5  
-else:
-    pool_size = int(pool_size_str)
-
-pool = MySQLConnectionPool(
-    host=os.getenv("DB_HOST"),
-    database=os.getenv("DB_NAME"),
-    user=os.getenv("DB_USER"),
-    password=os.getenv("DB_PASSWORD"),
-    pool_size=pool_size)
-
 # TapPay setting
 TAPPAY_API_URL = os.getenv("TAPPAY_API_URL")
 TAPPAY_PARTNER_KEY = os.getenv("TAPPAY_PARTNER_KEY")
 TAPPAY_MERCHANT_ID = os.getenv("TAPPAY_MERCHANT_ID")
 
-print("TAPPAY_API_URL", os.getenv("TAPPAY_API_URL"))
+# print("TAPPAY_API_URL", os.getenv("TAPPAY_API_URL"))
+
+# # Redis
+# redis_host = os.getenv("REDIS_HOST", "localhost")
+# redis_port = int(os.getenv("REDIS_PORT", 6379))
+# redis_password = os.getenv("REDIS_PASSWORD", None)
+# redis_client = None
+# # Connect to Redis server
+# def create_redis_client():
+#     try:
+#         client = redis.StrictRedis(host=redis_host, port=redis_port, password=redis_password, decode_responses=True)
+#         client.ping()
+#         print("Redis client done!")
+#         return client
+#     except redis.ConnectionError:
+#         print("Redis is None!")
+#         return None
+# redis_client=create_redis_client()
+# def is_redis_available():
+#     global redis_client
+#     if redis_client is None:
+#         return False
+#     try:
+#         redis_client.ping()
+#         return True
+#     except redis.ConnectionError:
+#         redis_client = None
+#         return False
+
 # JWT setting
 SECRET_KEY = "sfegrehrtwerwet54h5jtyfgdfgergerg"
 ALGORITHM = "HS256"
@@ -70,12 +80,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/user/auth")
 
 # 自定義User資料 model
 class User(BaseModel):
-    email: str
+    email: EmailStr
     password: str
     
 class SignOnInfo(BaseModel):
     name: str
-    email: str
+    email: EmailStr
     password: str
 
 class TokenData(BaseModel):
@@ -103,7 +113,7 @@ class Trip(BaseModel):
 
 class Contact(BaseModel):
     name: str
-    email: str
+    email: EmailStr
     phone: str
 
 class Order(BaseModel):
@@ -177,7 +187,7 @@ def verify_jwt_token(token: str = Depends(oauth2_scheme)) -> Union[TokenData, JS
     
 @app.put("/api/user/auth")
 async def login(user: User):
-    con, cursor = connectMySQLserver()
+    con, cursor = db.connect_mysql_server()
     if cursor is not None:
         try:
             # print(user.email)
@@ -190,7 +200,8 @@ async def login(user: User):
                 print(f"User: {data[0]}")
                 print(f"User email: {user.email}")
                 access_token = create_access_token(
-                    data={"userID": str(data[0]), "username": data[1], "email": data[2]}, expires_delta = timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
+                    data={"userID": str(data[0]), "username": data[1], "email": data[2]}, 
+                    expires_delta = timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
                 )
                 return {"token": access_token}
             else:
@@ -202,14 +213,22 @@ async def login(user: User):
     else:
         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
 
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={"error": True, "message": "Email格式有誤，請檢查輸入的格式和內容"}
+    )
+
 @app.post("/api/user")
 async def signOn(user: SignOnInfo):
-    con, cursor = connectMySQLserver()
+    con, cursor = db.connect_mysql_server()
     if cursor is not None:
         try:
-            print(user.name)
-            print(user.email)
-            print(user.password)
+            # print(user.name)
+            # print(user.email)
+            # print(user.password)
             cursor.execute("select name from User where email = %s", (user.email,))
             data = cursor.fetchone()
             if data:
@@ -236,7 +255,7 @@ async def checkUser(token_data: TokenData = Depends(verify_jwt_token)) :
                 "id": token_data.userID,
                 "name": token_data.name,
                 "email": token_data.email
-             }
+            }
 
     return {"data": result}
 
@@ -244,15 +263,44 @@ async def checkUser(token_data: TokenData = Depends(verify_jwt_token)) :
 async def bookEvent(booking_data: BookingData, token_data: TokenData = Depends(verify_jwt_token)):
     if isinstance(token_data, JSONResponse):
         return token_data
-    con, cursor = connectMySQLserver()
+    con, cursor = db.connect_mysql_server()
     if cursor is not None:
         try: 
-            cursor.execute("insert into Booking(attractionId, userId, date, timeSlot, price) values(%s, %s, %s, %s, %s)", 
-                           (booking_data.attraction_id,
-                            token_data.userID,
-                            booking_data.date if booking_data.date else None, 
-                            booking_data.travel_time, 
-                            booking_data.tour_price))
+             # 先確認user有沒有booking event, 有的話取代掉原本的booking event
+            travel_time = "上午" if booking_data.travel_time.lower() == "morning" else "下午" if booking_data.travel_time.lower() == "afternoon" else None
+            cursor.execute("select * from Booking where userId = %s", (token_data.userID,))
+            data = cursor.fetchone()
+            if data:
+                cursor.fetchall()
+                print("Has data!")
+                cursor.execute(
+                    "update Booking set attractionId = %s, date = %s, timeSlot = %s, price = %s where userId = %s",
+                    (
+                        booking_data.attraction_id,
+                        booking_data.date if booking_data.date else None,
+                        travel_time,
+                        booking_data.tour_price,
+                        token_data.userID
+                    )
+                )
+            else:
+                cursor.fetchall()
+                print("Has no data!")
+                print(booking_data.attraction_id)
+                print(token_data.userID)
+                print(booking_data.date)
+                print(travel_time)
+                print(booking_data.tour_price)
+                cursor.execute(
+                    "insert into Booking(attractionId, userId, date, timeSlot, price) values(%s, %s, %s, %s, %s)", 
+                    (
+                        booking_data.attraction_id,
+                        token_data.userID,
+                        booking_data.date if booking_data.date else None, 
+                        travel_time, 
+                        booking_data.tour_price
+                    )
+                )
             con.commit()
             return JSONResponse(status_code=200, content={"ok": True})
         except Exception as err:
@@ -266,7 +314,7 @@ async def bookEvent(booking_data: BookingData, token_data: TokenData = Depends(v
 async def getEvent(token_data: TokenData = Depends(verify_jwt_token)):
     if isinstance(token_data, JSONResponse):
         return token_data
-    con, cursor = connectMySQLserver()
+    con, cursor = db.connect_mysql_server()
     if cursor is not None:
         try:
             Result = [] 
@@ -316,7 +364,7 @@ async def getEvent(token_data: TokenData = Depends(verify_jwt_token)):
 async def deleteEvent(token_data: TokenData = Depends(verify_jwt_token)):
     if isinstance(token_data, JSONResponse):
         return token_data
-    con, cursor = connectMySQLserver()
+    con, cursor = db.connect_mysql_server()
     if cursor is not None:
         try: 
              # 先取得 Booking 內的資料
@@ -335,40 +383,51 @@ async def deleteEvent(token_data: TokenData = Depends(verify_jwt_token)):
     else:
         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
 
-# @app.post("/api/orders")
-# async def create_order(payment_request: PaymentRequest, token_data: TokenData = Depends(verify_jwt_token)):
-#     if isinstance(token_data, JSONResponse):
-#         return token_data
-#     try:
-#         # 整理支付請求資料
-#         contact = {
-#             "name": payment_request.order.contact.name,
-#             "email": payment_request.order.contact.email,
-#             "phone_number": payment_request.order.contact.phone,
-#         }
+@app.post("/api/orders")
+async def create_order(payment_request: PaymentRequest, token_data: TokenData = Depends(verify_jwt_token)):
+    if isinstance(token_data, JSONResponse):
+        return token_data
+    # print("payment_request", payment_request)
+    try:
+        # 整理支付請求資料
+        contact = {
+            "name": payment_request.order.contact.name,
+            "email": payment_request.order.contact.email,
+            "phone_number": payment_request.order.contact.phone,
+        }
 
-#         payload = {
-#             "prime": payment_request.prime,
-#             "partner_key": TAPPAY_PARTNER_KEY,
-#             "merchant_id": TAPPAY_MERCHANT_ID,
-#             "amount": payment_request.order.price,
-#             "currency": "TWD",
-#             "details": "Payment testing for attraction trip",
-#             "cardholder": contact
-#         }
+        payload = {
+            "prime": payment_request.prime,
+            "partner_key": TAPPAY_PARTNER_KEY,
+            "merchant_id": TAPPAY_MERCHANT_ID,
+            "amount": payment_request.order.price,
+            "currency": "TWD",
+            "details": "Payment testing for attraction trip",
+            "cardholder": contact
+        }
 
-#         headers = {
-#             "Content-Type": "application/json",
-#             "x-api-key": TAPPAY_PARTNER_KEY
-#         }
-
-#         response = requests.post(TAPPAY_API_URL, json=payload, headers=headers)
-#         if response.status_code == 200:
-#             return JSONResponse(status_code=200, content=response.json())
-#         else:
-#             raise JSONResponse(status_code=400, content={"error": True, "message": "訂單建立失敗，輸入不正確或其他原因"})
-#     except Exception:
-#         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+        headers = {
+            "Content-Type": "application/json",
+            "x-api-key": TAPPAY_PARTNER_KEY
+        }
+        response = requests.post(TAPPAY_API_URL, json=payload, headers=headers)
+        # print(response.json())
+        print(response.json()['rec_trade_id'])
+        print(response.json()['status'])
+        print(response.json()['msg'])
+        Result = {
+            "number": response.json()['rec_trade_id'],
+            "payment": {
+                "status":response.json()['status'],
+                "message":response.json()['msg']
+            }
+        }
+        if response.status_code == 200:
+            return JSONResponse(status_code=200, content={"data": Result})
+        else:
+            raise JSONResponse(status_code=400, content={"error": True, "message": "訂單建立失敗，輸入不正確或其他原因"})
+    except Exception:
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
     
 #*** Static Pages (Never Modify Code in this Block) ***
 @app.get("/", include_in_schema=False)
@@ -387,68 +446,85 @@ async def thankyou(request: Request):
 
 @app.get("/api/attractions")
 def get_attractions(page: int = 0, keyword: Optional[str] = Query(None)):
-    con, cursor = connectMySQLserver()
-    if cursor is not None:
-       try:
-            offset = page * 12
-            query = "SELECT * FROM Attraction"
-            params = []
-            
-            if keyword:
-                query += " WHERE name LIKE %s OR mrt = %s"
-                params.extend([f"%{keyword}%", keyword])
-                
-            query += " LIMIT %s OFFSET %s"
-            params.extend([12, offset])
-            
-            print(query)
-            cursor.execute(query, tuple(params))
-            attractions = cursor.fetchall()
-            
-            if not attractions:
-                return {"nextPage": None, "data": []}
-            
-            if len(attractions) == 12:
-                next_page = page + 1
-            else:
-                next_page = None
-            
-            result = []
-            for attraction in attractions:
-                images = []
-                id, name, category, description, address, direction, mrt, latitude, longitude, image_urls, rate, avBegin, avEnd = attraction
-                if image_urls:
-                    urls = image_urls.split(',')
-                    for url in urls:
-                        if url.lower().endswith(('jpg', 'png')):
-                            images.append(url)
-                else:
-                    images = []
+    cache_key = f"indexpagecache#{page}_keyword_{keyword}"
+    if db.is_redis_available():
+        cached_data = db.redis_client.get(cache_key)
 
-                result.append({
-                    "id": id,
-                    "name": name,
-                    "category": category,
-                    "description": description,
-                    "address": address,
-                    "transport": direction,
-                    "mrt": mrt,
-                    "lat": latitude,
-                    "lng": longitude,
-                    "images": images
-                })
-            
-            return {"nextPage": next_page, "data": result}
-       except Exception as err:
-            return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
-       finally:
-            con.close()
+    if cached_data:
+        print(f"Get Index Page{page}Cache!")
+        return json.loads(cached_data)
     else:
-        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+        con, cursor = db.connect_mysql_server()
+        if cursor is not None:
+            try:
+                    offset = page * 12
+                    query = "SELECT * FROM Attraction"
+                    params = []
+                    
+                    if keyword:
+                        query += " WHERE name LIKE %s OR mrt = %s"
+                        params.extend([f"%{keyword}%", keyword])
+                        
+                    query += " LIMIT %s OFFSET %s"
+                    params.extend([12, offset])
+                    
+                    print(query)
+                    cursor.execute(query, tuple(params))
+                    attractions = cursor.fetchall()
+                    
+                    if not attractions:
+                        return {"nextPage": None, "data": []}
+                    
+                    if len(attractions) == 12:
+                        next_page = page + 1
+                    else:
+                        next_page = None
+                    
+                    result = []
+                    for attraction in attractions:
+                        images = []
+                        id, name, category, description, address, direction, mrt, latitude, longitude, image_urls, rate, avBegin, avEnd = attraction
+                        if image_urls:
+                            urls = image_urls.split(',')
+                            for url in urls:
+                                if url.lower().endswith(('jpg', 'png')):
+                                    images.append(url)
+                        else:
+                            images = []
+
+                        result.append({
+                            "id": id,
+                            "name": name,
+                            "category": category,
+                            "description": description,
+                            "address": address,
+                            "transport": direction,
+                            "mrt": mrt,
+                            "lat": latitude,
+                            "lng": longitude,
+                            "images": images
+                        })
+                    db.redis_client.set(cache_key, json.dumps({"nextPage": next_page, "data": result}), ex=600)
+                    return {"nextPage": next_page, "data": result}
+            except Exception as err:
+                    return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+            finally:
+                    con.close()
+        else:
+            return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
     
 @app.get("/api/attraction/{attractionId}")
 def get_attraction(attractionId: int):
-    con, cursor = connectMySQLserver()
+    cache_key = f"attraction:{attractionId}"
+
+    if db.is_redis_available():
+        cached_result = db.redis_client.get(cache_key)
+        if cached_result:
+            print("Use Redis Cache!")
+            # print(cached_result)
+            return JSONResponse(status_code=200, content={"data": json.loads(cached_result)})
+    
+    con, cursor = db.connect_mysql_server()
     if cursor is not None:
         try:
             cursor.execute("SELECT * FROM Attraction WHERE id = %s", (attractionId,))
@@ -482,6 +558,9 @@ def get_attraction(attractionId: int):
                 "images": images
             }
 
+            if db.is_redis_available():
+                # redis_client.setex(cache_key, timedelta(minutes=10), json.dumps(result))
+                db.redis_client.set(cache_key, json.dumps(result), ex=300)
             return {"data": result}
         except Exception as err:
             return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
@@ -493,7 +572,7 @@ def get_attraction(attractionId: int):
 
 @app.get("/api/mrts")
 def get_mrts():
-    con, cursor = connectMySQLserver()
+    con, cursor = db.connect_mysql_server()
     if cursor is not None:
         try:
             cursor.execute("SELECT mrt, count(mrt) FROM Attraction GROUP BY mrt ORDER BY count(mrt) DESC")
@@ -509,22 +588,3 @@ def get_mrts():
             con.close()
     else:
         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
-    
-#程式關閉或登出後將Connection Pool關閉
-def close_connection_pool():
-    pool.close()
-
-def connectMySQLserver():
-    try:
-        con = pool.get_connection()
-        if con.is_connected():
-            cursor = con.cursor()
-            # print("資料庫連線成功")
-            return con, cursor
-        else:
-            print("資料庫連線未成功")
-            return None, None 
-    
-    except Error as e:
-        print("資料庫連線失敗:", e)
-        return None, None

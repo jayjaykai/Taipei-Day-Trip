@@ -1,3 +1,13 @@
+let img = document.getElementById('image');
+let spotName = document.getElementById('spotName');
+let spotDay = document.getElementById('spotDay');
+let spotTime = document.getElementById('spotTime');
+let spotPrice = document.getElementById('spotPrice');
+let finalPrice = document.getElementById('finalPrice');
+let price = "";
+let spotPlace = document.getElementById('spotPlace');
+let spotId = "";
+
 // JavaScript 檢查區域是否為空
 document.addEventListener("DOMContentLoaded", function() {
     // 檢查 token
@@ -7,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // getUserBookingData();
         execute();
     } else {
-        alert('請先登入會員帳戶');
+        //alert('請先登入會員帳戶');
         window.location.href = `/`;
     }
 });
@@ -15,25 +25,26 @@ document.addEventListener("DOMContentLoaded", function() {
 async function execute(){
     try{
         // getUserData()
-        let token = localStorage.getItem('token');
-        let response = await fetch('http://54.79.121.157:8000/api/user/auth', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
-        });
+        // let token = localStorage.getItem('token');
+        // let authResponse = await fetch('http://54.79.121.157:8000/api/user/auth', {
+        //     method: 'GET',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //         'Authorization': `Bearer ${token}`
+        //     }
+        // });
 
-        let result = await response.json();
-        if (!response.ok){
-            console.error('HTTP error', response.status);
-            alert(result.message);
-            return;
-        }
-
-        // console.log(result.data);
-        let username = document.getElementById('username');
-        username.textContent = "您好，" + result.data.name + "，待預訂的行程如下：";
+        // let authResult = await authResponse.json();
+        // if (!authResponse.ok){
+        //     console.error('HTTP error', authResponse.status);
+        //     alert(authResult.message);
+        //     return;
+        // }
+        // document.getElementById('contactName').value = authResult.data.name;
+        // document.getElementById('contactEmail').value= authResult.data.email;
+        // // console.log(result.data);
+        // let username = document.getElementById('username');
+        // username.textContent = "您好，" + authResult.data.name + "，待預訂的行程如下：";
 
 
         //getUserBookingData
@@ -49,7 +60,7 @@ async function execute(){
         result = await response.json();
         if(!response.ok){
             console.error('HTTP error', response.status);
-            alert(result.message);
+            // alert(result.message);
             return;
         }
         // console.log(result.data);
@@ -66,18 +77,16 @@ async function execute(){
             document.querySelector(".noReservation").style.display = 'block';
         }
         else{
-            let img = document.getElementById('image');
             img.src = result.data.attraction.image;
-            let spotName = document.getElementById('spotName');
             spotName.textContent = result.data.attraction.name;
-            let spotDay = document.getElementById('spotDay');
             spotDay.textContent = result.data.date;
-            let spotTime = document.getElementById('spotTime');
             spotTime.textContent = result.data.time;
-            let spotPrice = document.getElementById('spotPrice');
             spotPrice.textContent = "新台幣 " + result.data.price + " 元";
-            let spotPlace = document.getElementById('spotPlace');
+            finalPrice.textContent = "新台幣 " + result.data.price + " 元";
+            price = result.data.price;
             spotPlace.textContent = result.data.attraction.address;
+            spotId = result.data.attraction.id;
+
             document.querySelector(".travel-dedails").style.display = 'grid';
             document.querySelector(".personInfo").style.display = 'flex';
             document.querySelector(".creditCardInfo").style.display = 'flex';
@@ -94,58 +103,163 @@ async function execute(){
     }
 }
 
+async function deleteFetch(){
+    token = localStorage.getItem('token');
+    let response = await fetch('http://54.79.121.157:8000/api/booking', {
+        method: 'DELETE',
+        headers:{
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    result = await response.json();
+    if(!response.ok){
+        console.error('HTTP error', response.status);
+        alert(result.message);
+        return;
+    }
+    else{
+        window.location.href = `/booking`;
+    }
+}
+
 async function deleteEvent(){
     if (confirm("是否確認要刪除這個預訂？")){
-        token = localStorage.getItem('token');
-        let response = await fetch('http://54.79.121.157:8000/api/booking', {
-            method: 'DELETE',
-            headers:{
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        result = await response.json();
-        if(!response.ok){
-            console.error('HTTP error', response.status);
-            alert(result.message);
-            return;
-        }
-        else{
-            // alert("刪除成功");
-            window.location.href = `/booking`;
-        }
+        deleteFetch();
     }
     else{
         return;
     }
 }
 
-async function confirmAndPay(){
+// function disableInteraction() {
+//     document.getElementById('card-number').setAttribute('contenteditable', 'false');
+//     document.getElementById('card-expiration-date').setAttribute('contenteditable', 'false');
+//     document.getElementById('card-ccv').setAttribute('contenteditable', 'false');
+//     document.querySelectorAll('button, input').forEach(element => {
+//         element.disabled = true;
+//     });
+// }
+
+// function enableInteraction() {
+//     document.getElementById('card-number').setAttribute('contenteditable', 'true');
+//     document.getElementById('card-expiration-date').setAttribute('contenteditable', 'true');
+//     document.getElementById('card-ccv').setAttribute('contenteditable', 'true');
+//     document.querySelectorAll('button, input').forEach(element => {
+//         element.disabled = false;
+//     });
+// }
+
+async function onSubmit(event) {
+    event.preventDefault();
+    // 禁止使用者在進行期間點選其他的按鈕
+    //disableInteraction();
     if (confirm("是否確認要訂購並付款？")){
-        token = localStorage.getItem('token');
-        let response = await fetch('http://127.0.0.1:8000/api/orders', {
-            method: 'POST',
-            headers:{
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
-        });
+         // 取得 TapPay Fields 的 status
+        const tappayStatus = TPDirect.card.getTappayFieldsStatus();
 
-        result = await response.json();
-        if(!response.ok){
-            console.error('HTTP error', response.status);
-            alert(result.message);
+        // 確認是否可以 getPrime
+        if (tappayStatus.canGetPrime === false) {
+            alert('can not get prime');
+            //enableInteraction();
             return;
         }
-        else{
-            window.location.href = `/booking`;
-        }
+        // Get prime and fetch service
+        TPDirect.card.getPrime(async(result) => {
+            if (result.status !== 0) {
+                alert('get prime error ' + result.msg);
+                //enableInteraction();
+                return;
+            }
+            let prime = result.card.prime;
+            // alert('get prime 成功，prime: ' + result.card.prime);
+
+            // send prime to your server, to pay with Pay by Prime API .
+            // Pay By Prime Docs: https://docs.tappaysdk.com/tutorial/zh/back.html#pay-by-prime-api
+            //組織前端畫面的資料
+            let contactName = document.getElementById('contactName').value;
+            let contactEmail = document.getElementById('contactEmail').value;
+            let contactNumber = document.getElementById('contactNumber').value;
+            let data = {
+                prime: prime,
+                order:{
+                    price: parseInt(price),
+                    trip:{
+                        attraction:{
+                            id: parseInt(spotId),
+                            name: spotName.textContent,
+                            address: spotPlace.textContent,
+                            image:img.src
+                        },
+                        date: spotDay.textContent,
+                        time: spotTime.textContent
+                    },
+                    contact:{
+                        name: contactName,
+                        email: contactEmail,
+                        phone: contactNumber
+                    }
+                }
+            };
+            // console.log("Request body:", data);
+            token = localStorage.getItem('token');
+            let response = await fetch('http://54.79.121.157:8000/api/orders', {
+                method: 'POST',
+                headers:{
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+        
+            let getOrdersResult = await response.json();
+            if(!response.ok){
+                console.error('HTTP error', response.status);
+                alert(getOrdersResult.message);
+                //enableInteraction();
+                return;
+            }
+            else{
+                // console.log("Result: ", getOrdersResult);
+                alert("付款成功！")
+                deleteFetch();
+                //enableInteraction();
+                // window.location.href = `/booking`;
+            }
+        });
     }
     else{
+        //enableInteraction();
         return;
     }
 }
+
+// async function confirmAndPay(){
+//     if (confirm("是否確認要訂購並付款？")){
+//         token = localStorage.getItem('token');
+//         let response = await fetch('http://127.0.0.1:8000/api/orders', {
+//             method: 'POST',
+//             headers:{
+//                 'Content-Type': 'application/json',
+//                 'Authorization': `Bearer ${token}`
+//             }
+//         });
+
+//         result = await response.json();
+//         if(!response.ok){
+//             console.error('HTTP error', response.status);
+//             alert(result.message);
+//             return;
+//         }
+//         else{
+//             window.location.href = `/booking`;
+//         }
+//     }
+//     else{
+//         return;
+//     }
+// }
 
 // async function getUserData() { 
 //     try {
