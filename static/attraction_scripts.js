@@ -18,7 +18,7 @@ function getQueryParams() {
 
 async function fetchAttractionDetails(id) {
     try{
-        let response = await fetch(`http://127.0.0.1:8000/api/attraction/${id}`);
+        let response = await fetch(`http://54.79.121.157:8000/api/attraction/${id}`);
         let result = await response.json();
         if (!response.ok) {
             console.error('HTTP error', response.status);
