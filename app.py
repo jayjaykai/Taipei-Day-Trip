@@ -197,8 +197,8 @@ async def login(user: User):
             data = cursor.fetchone()
 
             if data:
-                print(f"User: {data[0]}")
-                print(f"User email: {user.email}")
+                # print(f"User: {data[0]}")
+                # print(f"User email: {user.email}")
                 access_token = create_access_token(
                     data={"userID": str(data[0]), "username": data[1], "email": data[2]}, 
                     expires_delta = timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
@@ -286,11 +286,11 @@ async def bookEvent(booking_data: BookingData, token_data: TokenData = Depends(v
             else:
                 cursor.fetchall()
                 print("Has no data!")
-                print(booking_data.attraction_id)
-                print(token_data.userID)
-                print(booking_data.date)
-                print(travel_time)
-                print(booking_data.tour_price)
+                # print(booking_data.attraction_id)
+                # print(token_data.userID)
+                # print(booking_data.date)
+                # print(travel_time)
+                # print(booking_data.tour_price)
                 cursor.execute(
                     "insert into Booking(attractionId, userId, date, timeSlot, price) values(%s, %s, %s, %s, %s)", 
                     (
@@ -370,7 +370,7 @@ async def deleteEvent(token_data: TokenData = Depends(verify_jwt_token)):
              # 先取得 Booking 內的資料
             cursor.execute("select attractionId from Booking where userId = %s", (token_data.userID,))
             bookingData = cursor.fetchone()
-            print(bookingData)
+            # print(bookingData)
             if bookingData:
                 cursor.fetchall()
                 cursor.execute("delete from Booking where userId = %s and attractionId = %s", (token_data.userID, bookingData[0]))
@@ -468,7 +468,7 @@ def get_attractions(page: int = 0, keyword: Optional[str] = Query(None)):
                     query += " LIMIT %s OFFSET %s"
                     params.extend([12, offset])
                     
-                    print(query)
+                    # print(query)
                     cursor.execute(query, tuple(params))
                     attractions = cursor.fetchall()
                     
