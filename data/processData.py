@@ -45,7 +45,7 @@ for attraction in data["result"]["results"]:
     # print(attraction["name"])
     # print(image_urls)
     cursor.execute("""
-    INSERT INTO Attraction_CDN (id, name, category, description, address, transport, mrt, lat, lng, images, rate, avBegin, avEnd)
+    INSERT INTO Attraction (id, name, category, description, address, transport, mrt, lat, lng, images, rate, avBegin, avEnd)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """, (
         attraction["_id"],
