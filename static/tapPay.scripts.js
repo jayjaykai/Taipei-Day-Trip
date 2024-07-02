@@ -97,27 +97,27 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // number 欄位是錯誤的
         if (update.status.number === 2) {
-            setNumberFormGroupToError('.card-number-group')
+            // setNumberFormGroupToError('.card-number-group')
         } else if (update.status.number === 0) {
-            setNumberFormGroupToSuccess('.card-number-group')
+            // setNumberFormGroupToSuccess('.card-number-group')
         } else {
-            setNumberFormGroupToNormal('.card-number-group')
+            // setNumberFormGroupToNormal('.card-number-group')
         }
 
         if (update.status.expiry === 2) {
-            setNumberFormGroupToError('.expiration-date-group')
+            // setNumberFormGroupToError('.expiration-date-group')
         } else if (update.status.expiry === 0) {
-            setNumberFormGroupToSuccess('.expiration-date-group')
+            // setNumberFormGroupToSuccess('.expiration-date-group')
         } else {
-            setNumberFormGroupToNormal('.expiration-date-group')
+            // setNumberFormGroupToNormal('.expiration-date-group')
         }
 
         if (update.status.ccv === 2) {
-            setNumberFormGroupToError('.ccv-group')
+            // setNumberFormGroupToError('.ccv-group')
         } else if (update.status.ccv === 0) {
-            setNumberFormGroupToSuccess('.ccv-group')
+            // setNumberFormGroupToSuccess('.ccv-group')
         } else {
-            setNumberFormGroupToNormal('.ccv-group')
+            // setNumberFormGroupToNormal('.ccv-group')
         }
     })
 });

@@ -387,23 +387,76 @@ async def deleteEvent(token_data: TokenData = Depends(verify_jwt_token)):
 async def create_order(payment_request: PaymentRequest, token_data: TokenData = Depends(verify_jwt_token)):
     if isinstance(token_data, JSONResponse):
         return token_data
-    # print("payment_request", payment_request)
+
+    # 提取資料
+    prime = payment_request.prime
+    order = payment_request.order
+    trip = order.trip
+    contact = order.contact
+    
+    contactName = contact.name
+    contactEmail = contact.email
+    contactPhone = contact.phone
+    attractionId = trip.attraction.id
+    date = trip.date
+    time = trip.time
+    price = order.price
+
+    if contactName == "" or contactEmail == "" or contactPhone == "":
+        return JSONResponse(status_code=400, content={"error": True, "message": "訂單建立失敗，請填寫聯絡姓名、信箱及手機號碼資訊!"})
+    
+    # 建立自定義訂單編號到毫秒
+    now = datetime.now()
+    order_number = now.strftime("%Y%m%d%H%M%S%f")
+
+    con, cursor = None, None
     try:
-        # 整理支付請求資料
-        contact = {
-            "name": payment_request.order.contact.name,
-            "email": payment_request.order.contact.email,
-            "phone_number": payment_request.order.contact.phone,
+        con, cursor = db.connect_mysql_server()
+        if cursor is not None:
+            cursor.execute(
+                "insert into Orders(order_number, userId, attractionId, date, time, price, contactName, contactEmail, phone, status) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", 
+                (
+                    order_number, 
+                    token_data.userID, 
+                    attractionId, 
+                    date, 
+                    time, 
+                    price, 
+                    contactName, 
+                    contactEmail, 
+                    contactPhone, 
+                    "未付款"
+                )
+            )
+            con.commit()
+            cursor.fetchall()
+            # 刪除購物車資料
+            cursor.execute("delete from Booking where userId = %s", (token_data.userID,))
+            con.commit()
+        else:
+            return JSONResponse(status_code=500, content={"error": True, "message": "無法連接到資料庫"})
+    except Exception as err:
+        print(f"Error inserting order: {err}")
+        return JSONResponse(status_code=400, content={"error": True, "message": str(err)})
+    finally:
+        con.close()
+
+    try:
+        contact_info = {
+            "name": contactName,
+            "email": contactEmail,
+            "phone_number": contactPhone,
         }
 
         payload = {
-            "prime": payment_request.prime,
+            "prime": prime,
+            "order_number": order_number,
             "partner_key": TAPPAY_PARTNER_KEY,
             "merchant_id": TAPPAY_MERCHANT_ID,
-            "amount": payment_request.order.price,
+            "amount": price,
             "currency": "TWD",
             "details": "Payment testing for attraction trip",
-            "cardholder": contact
+            "cardholder": contact_info
         }
 
         headers = {
@@ -411,24 +464,76 @@ async def create_order(payment_request: PaymentRequest, token_data: TokenData = 
             "x-api-key": TAPPAY_PARTNER_KEY
         }
         response = requests.post(TAPPAY_API_URL, json=payload, headers=headers)
-        # print(response.json())
-        print(response.json()['rec_trade_id'])
-        print(response.json()['status'])
-        print(response.json()['msg'])
+        response.raise_for_status()  # Raise an error for bad HTTP responses
+        response_data = response.json()
+        print("Status: ", response_data['status'])
+
+        # 根據支付結果更新訂單狀態
+        if response_data['status'] == 0:
+            message = "付款成功"
+            print(message)
+            con, cursor = db.connect_mysql_server()
+            if cursor is not None:
+                try:
+                    print("UPDATE Orders")
+                    cursor.execute("UPDATE Orders SET status = %s WHERE order_number = %s", ("已付款", order_number))
+                    con.commit()
+                except Exception as err:
+                    print(f"Error updating order: {err}")
+                    return JSONResponse(status_code=400, content={"error": True, "message": "更新訂單狀態失敗，輸入不正確或其他原因"})
+                finally:
+                    con.close()
+        else:
+            message = "付款失敗"
+            print(message)
+
+        print(response_data)
+        print(response_data['order_number'])
+        print(response_data['status'])
+        print(response_data['msg'])
+
         Result = {
-            "number": response.json()['rec_trade_id'],
+            "number": response_data['order_number'],
             "payment": {
-                "status":response.json()['status'],
-                "message":response.json()['msg']
+                "status": response_data['status'],
+                "message": message
             }
         }
         if response.status_code == 200:
             return JSONResponse(status_code=200, content={"data": Result})
         else:
-            raise JSONResponse(status_code=400, content={"error": True, "message": "訂單建立失敗，輸入不正確或其他原因"})
-    except Exception:
+            raise HTTPException(status_code=400, detail="訂單建立失敗，輸入不正確或其他原因")
+    except requests.exceptions.RequestException as err:
+        print(f"HTTP Request failed: {err}")
+        return JSONResponse(status_code=500, content={"error": True, "message": "TapPay請求失敗"})
+    except Exception as err:
+        print(f"Exception occurred: {err}")
         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
-    
+
+# @app.get("/api/orders")
+# async def create_order(token_data: TokenData = Depends(verify_jwt_token)):
+#     if isinstance(token_data, JSONResponse):
+#         return token_data
+
+#     con, cursor = None, None
+#     try:
+#         con, cursor = db.connect_mysql_server()
+#         if cursor is not None:
+#            # 取得 OrdersData 內的資料
+#             cursor.execute("select O.order_number, O.date, O.time, O.price, A.name, O.status from orders O join attraction A on "+
+#                            "A.id = O.attractionId where O.userId = %s order by O.id desc", (token_data.userID,))
+#             OrdersData = cursor.fetchall()
+#             # print(OrdersData)
+#             if OrdersData:
+#                 return JSONResponse(status_code=200, content={"ok": True})
+#         else:
+#             return JSONResponse(status_code=500, content={"error": True, "message": "無法連接到資料庫"})
+#     except Exception as err:
+#         print(f"Error inserting order: {err}")
+#         return JSONResponse(status_code=400, content={"error": True, "message": str(err)})
+#     finally:
+#         con.close()
+
 #*** Static Pages (Never Modify Code in this Block) ***
 @app.get("/", include_in_schema=False)
 async def index(request: Request):

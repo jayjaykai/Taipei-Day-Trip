@@ -4,8 +4,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Thank You</title>
+  <link rel="stylesheet" href="/static/thankyou_styles.css">
+  <link rel="stylesheet" href="/static/dialog_styles.css">
 </head>
 <body>
-  
+  <div class="container">
+    <div class="nav-container">
+        <nav class="nav">
+            <h2 class="header">
+                <a href="/">台北一日遊</a>
+            </h2>
+            <div>
+                <button onclick="bookEvent()">預定行程</button>
+                <button id="loginButton" style="display:none;">登入/註冊</button>
+                <button id="logoutButton" onclick="logout()" style="display:none;">登出系統</button>
+            </div>
+        </nav>
+    </div>
+    <section class="thankyou-container">
+      <div class="msgtitle">行程預定成功，您的訂單編號如下：</div>
+      <div id="order_num"></div>
+      <div class="msgtitle">您的歷史訂單紀錄如下：</div>
+    </section>
+    <footer class="footer">COPYRIGHT © 2021 台北一日遊</footer>
+  </div>
+  <script src="/static/dialog_script.js" defer></script>
+  <script src="/static/thankyou.js" defer></script>
 </body>
 </html>
