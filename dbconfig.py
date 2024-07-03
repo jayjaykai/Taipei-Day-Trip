@@ -18,10 +18,9 @@ class DBConfig:
         print("DB_NAME:", os.getenv("DB_NAME"))
 
         pool_size_str = os.getenv("POOL_SIZE")
-        pool_size = 10 if pool_size_str is None else int(pool_size_str)
+        pool_size = 5 if pool_size_str is None else int(pool_size_str)
 
         self.pool = MySQLConnectionPool(
-            pool_name="mypool",
             pool_size=pool_size,
             host=os.getenv("DB_HOST"),
             database=os.getenv("DB_NAME"),
