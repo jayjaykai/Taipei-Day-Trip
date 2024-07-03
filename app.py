@@ -43,6 +43,9 @@ TAPPAY_API_URL = os.getenv("TAPPAY_API_URL")
 TAPPAY_PARTNER_KEY = os.getenv("TAPPAY_PARTNER_KEY")
 TAPPAY_MERCHANT_ID = os.getenv("TAPPAY_MERCHANT_ID")
 
+# timedelta setting
+SERVER_TYPE = os.getenv("SERVER_TYPE")
+
 # print("TAPPAY_API_URL", os.getenv("TAPPAY_API_URL"))
 
 # # Redis
@@ -528,13 +531,18 @@ async def create_order(token_data: TokenData = Depends(verify_jwt_token)):
             if OrdersData:
                 orders_list = []
                 for order in OrdersData:
+                    if SERVER_TYPE == "AWS":
+                        created_time = (order[5] + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")
+                    else:
+                        created_time = order[5].strftime("%Y-%m-%d %H:%M:%S")
+
                     order_dict = {
                         "order_number": order[0],
                         "date": order[1],
                         "time": order[2],
                         "price": order[3],
                         "name": order[4],
-                        "created_time": order[5].strftime("%Y-%m-%d %H:%M:%S"),
+                        "created_time": created_time,
                         "status": order[6]
                     }
                     orders_list.append(order_dict)
