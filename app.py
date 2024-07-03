@@ -521,7 +521,7 @@ async def create_order(token_data: TokenData = Depends(verify_jwt_token)):
         con, cursor = db.connect_mysql_server()
         if cursor is not None:
            # 取得 OrdersData 內的資料
-            cursor.execute("select O.order_number, O.date, O.time, O.price, A.name, O.created_at, O.status from Orders O join attraction A on "+
+            cursor.execute("select O.order_number, O.date, O.time, O.price, A.name, O.created_at, O.status from Orders O join Attraction A on "+
                            "A.id = O.attractionId where O.userId = %s order by O.id desc LIMIT 20", (token_data.userID,))
             OrdersData = cursor.fetchall()
             print(OrdersData)
