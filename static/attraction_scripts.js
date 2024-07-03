@@ -100,11 +100,19 @@ function preImg() {
         currentIndex--;
         updatePosition();
     }
+    else{
+        currentIndex = imageLen-1;
+        updatePosition();
+    }
 }
 
 function nextImg() {
     if (currentIndex < imageLen - 1) {
         currentIndex++;
+        updatePosition();
+    }
+    else{
+        currentIndex = 0;
         updatePosition();
     }
 }

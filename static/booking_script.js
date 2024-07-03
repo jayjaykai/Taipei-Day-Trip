@@ -25,28 +25,6 @@ document.addEventListener("DOMContentLoaded", function() {
 async function execute(){
     try{
         // getUserData()
-        // let token = localStorage.getItem('token');
-        // let authResponse = await fetch('http://54.79.121.157:8000/api/user/auth', {
-        //     method: 'GET',
-        //     headers: {
-        //         'Content-Type': 'application/json',
-        //         'Authorization': `Bearer ${token}`
-        //     }
-        // });
-
-        // let authResult = await authResponse.json();
-        // if (!authResponse.ok){
-        //     console.error('HTTP error', authResponse.status);
-        //     alert(authResult.message);
-        //     return;
-        // }
-        // document.getElementById('contactName').value = authResult.data.name;
-        // document.getElementById('contactEmail').value= authResult.data.email;
-        // // console.log(result.data);
-        // let username = document.getElementById('username');
-        // username.textContent = "您好，" + authResult.data.name + "，待預訂的行程如下：";
-
-
         //getUserBookingData
         token = localStorage.getItem('token');
         response = await fetch('http://54.79.121.157:8000/api/booking', {
@@ -161,14 +139,16 @@ async function onSubmit(event) {
 
         // 確認是否可以 getPrime
         if (tappayStatus.canGetPrime === false) {
-            alert('can not get prime');
+            // alert('can not get prime');
+            alert('信用卡資訊有誤，請確認!');
             //enableInteraction();
             return;
         }
         // Get prime and fetch service
         TPDirect.card.getPrime(async(result) => {
             if (result.status !== 0) {
-                alert('get prime error ' + result.msg);
+                //alert('get prime error ' + result.msg); 
+                alert('信用卡資訊有誤，請確認!' + result.msg);
                 //enableInteraction();
                 return;
             }
@@ -215,17 +195,20 @@ async function onSubmit(event) {
         
             let getOrdersResult = await response.json();
             if(!response.ok){
-                console.error('HTTP error', response.status);
-                alert(getOrdersResult.message);
-                //enableInteraction();
-                return;
+                if(response.status === 550){
+                    console.error('HTTP error', response.status);
+                    alert(getOrdersResult.message);
+                }
+                else{
+                    console.error('HTTP error', response.status);
+                    alert("付款失敗，仍需預約行程請重新預訂！");
+                }
             }
             else{
                 // console.log("Result: ", getOrdersResult);
                 alert("付款成功！")
-                deleteFetch();
-                //enableInteraction();
-                // window.location.href = `/booking`;
+                // deleteFetch();
+                window.location.href = `/thankyou?number=${getOrdersResult.data.number}`;
             }
         });
     }

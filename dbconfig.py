@@ -21,11 +21,12 @@ class DBConfig:
         pool_size = 5 if pool_size_str is None else int(pool_size_str)
 
         self.pool = MySQLConnectionPool(
+            pool_size=pool_size,
             host=os.getenv("DB_HOST"),
             database=os.getenv("DB_NAME"),
             user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD"),
-            pool_size=pool_size
+            port=3306
         )
 
     def close_connection_pool(self):
@@ -68,7 +69,7 @@ class DBConfig:
 
     def is_redis_available(self):
         # if self.redis_client is None:
-        #     self.redis_client = self.create_redis_client()
+        # self.redis_client = self.create_redis_client()
         if self.redis_client is None:
             return False
         try:
