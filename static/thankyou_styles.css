@@ -78,7 +78,7 @@ h2 {
     background-color: #FFFFFF;
     margin: 0 auto;
     padding-top: 80px;
-    padding-bottom: 100px;
+    padding-bottom: 20px;
 }
 
 .msgtitle{
@@ -91,6 +91,15 @@ h2 {
     color: #666666
 }
 
+.msgtitle > span{
+    color:#008080;
+}
+
+.order-number{
+    font-weight: bold;
+    color: #008080;
+}
+
 .footer {
     background-color: #757575;
     padding: 20px;
@@ -100,4 +109,75 @@ h2 {
     margin-top: auto;
     width: 100%;
     height: 100%;
+}
+
+table {
+    width: 100%;
+    max-width: 1200px;
+    margin: 20px auto;
+    font-size: 16px;
+    border-collapse: collapse;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+thead tr {
+    background-color: #008080;
+    color: #ffffff;
+    text-align: center;
+}
+
+thead th, tbody td {
+    padding: 12px 15px;
+    border: 1px solid #dddddd;
+}
+
+tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+}
+
+tbody tr:nth-of-type(odd) {
+    background-color: #ffffff;
+}
+
+tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+tbody td {
+    text-align: center;
+}
+
+.history-lists-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin-top: 20px;
+}
+
+@media (max-width: 1200px) and (min-width: 601px) {
+    table {
+        width: 100%;
+        margin: 16px auto;
+    }
+
+    thead th, tbody td {
+        padding: 10px 12px;
+    }
+}
+
+@media (max-width: 600px) {
+    table {
+        width: 100%;
+        margin: 5px auto;
+        font-size: 10px;
+    }
+
+    thead th, tbody td {
+        padding: 8px 10px;
+    }
+
+    tbody td {
+        text-align: center;
+    }
 }

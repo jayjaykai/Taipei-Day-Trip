@@ -27,7 +27,7 @@ async function execute(){
         // getUserData()
         //getUserBookingData
         token = localStorage.getItem('token');
-        response = await fetch('http://127.0.0.1:8000/api/booking', {
+        response = await fetch('http://54.79.121.157:8000/api/booking', {
             method: 'GET',
             headers:{
                 'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ async function execute(){
 
 async function deleteFetch(){
     token = localStorage.getItem('token');
-    let response = await fetch('http://127.0.0.1:8000/api/booking', {
+    let response = await fetch('http://54.79.121.157:8000/api/booking', {
         method: 'DELETE',
         headers:{
             'Content-Type': 'application/json',
@@ -184,7 +184,7 @@ async function onSubmit(event) {
             };
             // console.log("Request body:", data);
             token = localStorage.getItem('token');
-            let response = await fetch('http://127.0.0.1:8000/api/orders', {
+            let response = await fetch('http://54.79.121.157:8000/api/orders', {
                 method: 'POST',
                 headers:{
                     'Content-Type': 'application/json',
@@ -195,16 +195,19 @@ async function onSubmit(event) {
         
             let getOrdersResult = await response.json();
             if(!response.ok){
-                console.error('HTTP error', response.status);
-                alert(getOrdersResult.message);
-                //enableInteraction();
-                return;
+                if(response.status === 550){
+                    console.error('HTTP error', response.status);
+                    alert(getOrdersResult.message);
+                }
+                else{
+                    console.error('HTTP error', response.status);
+                    alert("付款失敗，仍需預約行程請重新預訂！");
+                }
             }
             else{
                 // console.log("Result: ", getOrdersResult);
                 alert("付款成功！")
                 // deleteFetch();
-                //enableInteraction();
                 window.location.href = `/thankyou?number=${getOrdersResult.data.number}`;
             }
         });

@@ -286,11 +286,11 @@ async def bookEvent(booking_data: BookingData, token_data: TokenData = Depends(v
             else:
                 cursor.fetchall()
                 print("Has no data!")
-                # print(booking_data.attraction_id)
-                # print(token_data.userID)
-                # print(booking_data.date)
-                # print(travel_time)
-                # print(booking_data.tour_price)
+                print(booking_data.attraction_id)
+                print(token_data.userID)
+                print(booking_data.date)
+                print(travel_time)
+                print(booking_data.tour_price)
                 cursor.execute(
                     "insert into Booking(attractionId, userId, date, timeSlot, price) values(%s, %s, %s, %s, %s)", 
                     (
@@ -304,6 +304,7 @@ async def bookEvent(booking_data: BookingData, token_data: TokenData = Depends(v
             con.commit()
             return JSONResponse(status_code=200, content={"ok": True})
         except Exception as err:
+            print(err)
             return JSONResponse(status_code=400, content={"error": True, "message": "建立失敗，輸入不正確或其他原因"})
         finally:
             con.close()
@@ -403,7 +404,7 @@ async def create_order(payment_request: PaymentRequest, token_data: TokenData = 
     price = order.price
 
     if contactName == "" or contactEmail == "" or contactPhone == "":
-        return JSONResponse(status_code=400, content={"error": True, "message": "訂單建立失敗，請填寫聯絡姓名、信箱及手機號碼資訊!"})
+        return JSONResponse(status_code=550, content={"error": True, "message": "訂單建立失敗，請填寫聯絡姓名、信箱及手機號碼資訊!"})
     
     # 建立自定義訂單編號到毫秒
     now = datetime.now()
@@ -510,29 +511,43 @@ async def create_order(payment_request: PaymentRequest, token_data: TokenData = 
         print(f"Exception occurred: {err}")
         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
 
-# @app.get("/api/orders")
-# async def create_order(token_data: TokenData = Depends(verify_jwt_token)):
-#     if isinstance(token_data, JSONResponse):
-#         return token_data
+@app.get("/api/orders")
+async def create_order(token_data: TokenData = Depends(verify_jwt_token)):
+    if isinstance(token_data, JSONResponse):
+        return token_data
 
-#     con, cursor = None, None
-#     try:
-#         con, cursor = db.connect_mysql_server()
-#         if cursor is not None:
-#            # 取得 OrdersData 內的資料
-#             cursor.execute("select O.order_number, O.date, O.time, O.price, A.name, O.status from orders O join attraction A on "+
-#                            "A.id = O.attractionId where O.userId = %s order by O.id desc", (token_data.userID,))
-#             OrdersData = cursor.fetchall()
-#             # print(OrdersData)
-#             if OrdersData:
-#                 return JSONResponse(status_code=200, content={"ok": True})
-#         else:
-#             return JSONResponse(status_code=500, content={"error": True, "message": "無法連接到資料庫"})
-#     except Exception as err:
-#         print(f"Error inserting order: {err}")
-#         return JSONResponse(status_code=400, content={"error": True, "message": str(err)})
-#     finally:
-#         con.close()
+    con, cursor = None, None
+    try:
+        con, cursor = db.connect_mysql_server()
+        if cursor is not None:
+           # 取得 OrdersData 內的資料
+            cursor.execute("select O.order_number, O.date, O.time, O.price, A.name, O.created_at, O.status from orders O join attraction A on "+
+                           "A.id = O.attractionId where O.userId = %s order by O.id desc LIMIT 20", (token_data.userID,))
+            OrdersData = cursor.fetchall()
+            print(OrdersData)
+            if OrdersData:
+                orders_list = []
+                for order in OrdersData:
+                    order_dict = {
+                        "order_number": order[0],
+                        "date": order[1],
+                        "time": order[2],
+                        "price": order[3],
+                        "name": order[4],
+                        "created_time": order[5].strftime("%Y-%m-%d %H:%M:%S"),
+                        "status": order[6]
+                    }
+                    orders_list.append(order_dict)
+                return JSONResponse(status_code=200, content={"ok": True, "orders": orders_list})
+            else:
+                return JSONResponse(status_code=200, content={"ok": True, "orders": []})
+        else:
+            return JSONResponse(status_code=500, content={"error": True, "message": "無法連接到資料庫"})
+    except Exception as err:
+        print(f"Error inserting order: {err}")
+        return JSONResponse(status_code=400, content={"error": True, "message": str(err)})
+    finally:
+        con.close()
 
 #*** Static Pages (Never Modify Code in this Block) ***
 @app.get("/", include_in_schema=False)
