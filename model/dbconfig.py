@@ -9,7 +9,7 @@ load_dotenv()
 class DBConfig:
     def __init__(self):
         self.pool = None
-        self.redis_client = None
+        # self.redis_client = None
 
     def initialize_mysql_pool(self):
         print("DB_HOST:", os.getenv("DB_HOST"))
@@ -48,36 +48,4 @@ class DBConfig:
             print("資料庫連線失敗:", e)
             return None, None
 
-    def create_redis_client(self):
-        redis_host = os.getenv("REDIS_HOST", "localhost")
-        redis_port = int(os.getenv("REDIS_PORT", 6379))
-        redis_password = os.getenv("REDIS_PASSWORD", None)
-
-        try:
-            client = redis.StrictRedis(
-                host=redis_host,
-                port=redis_port,
-                password=redis_password,
-                decode_responses=True
-            )
-            client.ping()
-            print("Redis client done!")
-            return client
-        except redis.ConnectionError:
-            print("Redis is None!")
-            return None
-
-    def is_redis_available(self):
-        # if self.redis_client is None:
-        # self.redis_client = self.create_redis_client()
-        if self.redis_client is None:
-            return False
-        try:
-            self.redis_client.ping()
-            return True
-        except redis.ConnectionError:
-            self.redis_client = None
-            return False
-
 db = DBConfig()
-db.redis_client = db.create_redis_client()

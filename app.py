@@ -1,5 +1,6 @@
 from typing import Optional, Union
-from dbconfig import db
+from model.dbconfig import db
+from model.cache import Cache
 from fastapi import *
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
@@ -45,6 +46,9 @@ TAPPAY_MERCHANT_ID = os.getenv("TAPPAY_MERCHANT_ID")
 
 # timedelta setting
 SERVER_TYPE = os.getenv("SERVER_TYPE")
+
+# Redis
+Cache.redis_client = Cache.create_redis_client() 
 
 # print("TAPPAY_API_URL", os.getenv("TAPPAY_API_URL"))
 
@@ -171,23 +175,6 @@ def verify_jwt_token(token: str = Depends(oauth2_scheme)) -> Union[TokenData, JS
             content={"error": True, "message": "未登入系統，拒絕存取"}
         )
 
-# def verify_jwt_token(token: str = Depends(oauth2_scheme)) -> TokenData:
-#     credentials_exception = HTTPException(
-#         status_code=status.HTTP_403_FORBIDDEN,
-#         detail="未登入系統，拒絕存取",
-#         headers={"WWW-Authenticate": "Bearer"},
-#     )
-#     try:
-#         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-#         user_id: str = payload.get("userID")
-#         username: str = payload.get("username")
-#         email: str = payload.get("email")
-#         if user_id is None or username is None or email is None:
-#             raise credentials_exception
-#         return TokenData(userID=user_id, name=username, email=email)
-#     except (ExpiredSignatureError, JWTError):
-#         raise credentials_exception
-    
 @app.put("/api/user/auth")
 async def login(user: User):
     con, cursor = db.connect_mysql_server()
@@ -575,8 +562,8 @@ async def thankyou(request: Request):
 @app.get("/api/attractions")
 def get_attractions(page: int = 0, keyword: Optional[str] = Query(None)):
     cache_key = f"indexpagecache#{page}_keyword_{keyword}"
-    if db.is_redis_available():
-        cached_data = db.redis_client.get(cache_key)
+    if Cache.is_redis_available():
+        cached_data = Cache.redis_client.get(cache_key)
 
     if cached_data:
         print(f"Get Index Page{page}Cache!")
@@ -632,7 +619,8 @@ def get_attractions(page: int = 0, keyword: Optional[str] = Query(None)):
                             "lng": longitude,
                             "images": images
                         })
-                    db.redis_client.set(cache_key, json.dumps({"nextPage": next_page, "data": result}), ex=600)
+                    if Cache.is_redis_available():    
+                        Cache.redis_client.set(cache_key, json.dumps({"nextPage": next_page, "data": result}), ex=600)
                     return {"nextPage": next_page, "data": result}
             except Exception as err:
                     return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
@@ -645,8 +633,9 @@ def get_attractions(page: int = 0, keyword: Optional[str] = Query(None)):
 def get_attraction(attractionId: int):
     cache_key = f"attraction:{attractionId}"
 
-    if db.is_redis_available():
-        cached_result = db.redis_client.get(cache_key)
+    if Cache.is_redis_available():
+        Cache.update_top_searches(attractionId)
+        cached_result = Cache.redis_client.get(cache_key)
         if cached_result:
             print("Use Redis Cache!")
             # print(cached_result)
@@ -686,9 +675,9 @@ def get_attraction(attractionId: int):
                 "images": images
             }
 
-            if db.is_redis_available():
+            if Cache.is_redis_available():
                 # redis_client.setex(cache_key, timedelta(minutes=10), json.dumps(result))
-                db.redis_client.set(cache_key, json.dumps(result), ex=300)
+                Cache.redis_client.set(cache_key, json.dumps(result), ex=300)
             return {"data": result}
         except Exception as err:
             return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
@@ -710,6 +699,37 @@ def get_mrts():
                 if row[0] is not None:
                     mrts.append(row[0])
             return mrts
+        except Exception as err:
+            return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+        finally:
+            con.close()
+    else:
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+    
+@app.get("/api/top-attractions")
+def get_top_attractions(request: Request):
+    top_searches = Cache.get_top_searches()
+    # print("top_searches", top_searches)
+    attractions = []
+
+    if not top_searches:
+        return JSONResponse(status_code=200, content={"attractions": attractions})
+    
+    con, cursor = db.connect_mysql_server()
+    if cursor is not None:
+        try:
+            placeholders = ','.join(['%s'] * len(top_searches))
+            query = f"select id, name from Attraction where id in ({placeholders}) order by field(id, {placeholders})"
+            cursor.execute(query, top_searches + top_searches)
+            results = cursor.fetchall()
+            # 處理每一條查詢結果
+            for row in results:
+                id, name = row
+                attractions.append({
+                    "id": id,
+                    "name": name
+            })
+            return JSONResponse(status_code=200, content={"attractions": attractions})
         except Exception as err:
             return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
         finally:
