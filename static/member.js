@@ -103,6 +103,7 @@ function displayOrders(orders) {
 
 async function uploadImage(event) {
     let file = event.target.files[0];
+    let token = localStorage.getItem('token');
     if (!file) {
         alert('No file selected.');
         return;
@@ -117,9 +118,11 @@ async function uploadImage(event) {
 
     let formData = new FormData();
     formData.append('file', file);
-
-    let response = await fetch('http://54.79.121.157:8000/api/upload', {
+    let response = await fetch('http://127.0.0.1:8000/api/upload', {
         method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        },
         body: formData
     })
 

@@ -91,7 +91,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/user/auth")
 
 # 自定義User資料 model
 class User(BaseModel):
-    email: EmailStr
+    email: str
     password: str
     
 class SignOnInfo(BaseModel):
@@ -157,6 +157,7 @@ def verify_jwt_token(token: str = Depends(oauth2_scheme)) -> Union[TokenData, JS
         username: str = payload.get("username")
         email: str = payload.get("email")
         proImage: str = payload.get("proImage")
+        print(email)
         if user_id is None or username is None or email is None:
             return JSONResponse(
                 status_code=403,
@@ -748,7 +749,7 @@ def get_top_attractions(request: Request):
         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
     
 @app.post("/api/upload")
-async def upload(file: UploadFile = File(...), token_data: TokenData = Depends(verify_jwt_token)):
+async def upload(token_data: TokenData = Depends(verify_jwt_token), file: UploadFile = File(...)):
     if isinstance(token_data, JSONResponse):
         return token_data
     # 加載環境變數中的AWS憑證
@@ -772,11 +773,11 @@ async def upload(file: UploadFile = File(...), token_data: TokenData = Depends(v
         file_content = await file.read()
         # 上傳圖片到S3
         s3_client.put_object(Bucket=S3_BUCKET, Key=file_name, Body=file_content)
-        # print(f"{file_name} uploaded to S3.")
+        print(f"{file_name} uploaded to S3.")
         con, cursor = db.connect_mysql_server()
         if cursor is not None:
             try:
-                cursor.execute("UPDATE User SET profileImage = %s where userId = %s", 
+                cursor.execute("update User set profileImage = %s where id = %s", 
                                ("https://mykevinbucket.s3.ap-southeast-2.amazonaws.com/" + file_name ,token_data.userID))
                 con.commit()
             except Exception as err:
