@@ -251,7 +251,6 @@ async def checkUser(token_data: TokenData = Depends(verify_jwt_token)) :
                 "id": token_data.userID,
                 "name": token_data.name,
                 "email": token_data.email,
-                "proImage": token_data.proImage
             }
 
     return {"data": result}
