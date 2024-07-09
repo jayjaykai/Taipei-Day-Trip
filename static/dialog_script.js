@@ -233,7 +233,7 @@ async function checkToken() {
         // logoutButton.style.display = 'inline';
         profileImage.style.display = 'inline';
         if(proImg === null){
-            profileImage.src = result.data.proImage;
+            profileImage.src = "https://mykevinbucket.s3.ap-southeast-2.amazonaws.com/profile.jpg";
         }
         else{
             profileImage.src = proImg;
