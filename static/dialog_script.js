@@ -226,6 +226,7 @@ async function checkToken() {
             profileImage.style.display = 'none';
             alert(result.message);
             localStorage.removeItem('token');
+            localStorage.removeItem('proImg');
             window.location.href = `/`;
         }
         
@@ -263,6 +264,7 @@ async function checkToken() {
 function logout(){
     if (confirm("確認要登出系統嗎？")){
         localStorage.removeItem('token');
+        localStorage.removeItem('proImg');
         checkToken();
         window.location.href = `/`;
     }
