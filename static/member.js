@@ -131,6 +131,7 @@ async function uploadImage(event) {
     }
     else{
         alert(getUploadInfo.message);
+        window.location.href = `/member`;
     }
 }
 

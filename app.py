@@ -748,33 +748,42 @@ def get_top_attractions(request: Request):
         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
     
 @app.post("/api/upload")
-async def upload(file: UploadFile = File(...)):
+async def upload(file: UploadFile = File(...), token_data: TokenData = Depends(verify_jwt_token)):
+    if isinstance(token_data, JSONResponse):
+        return token_data
+    # 加載環境變數中的AWS憑證
     S3_BUCKET = os.getenv('S3_BUCKET')
     REGION = os.getenv('AWS_REGION')
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+    
+    if not AWS_ACCESS_KEY_ID or not AWS_SECRET_ACCESS_KEY:
+        return JSONResponse(status_code=500, content={"error": True, "message": "AWS credentials not found in environment variables"})
 
-    print(SERVER_TYPE)
-    if SERVER_TYPE=="Local":
-        # 加載環境變數中的AWS憑證
-        AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-        AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-        if not AWS_ACCESS_KEY_ID or not AWS_SECRET_ACCESS_KEY:
-            return JSONResponse(status_code=500, content={"error": True, "message": "AWS credentials not found in environment variables"})
-
-        s3_client = boto3.client(
-            's3',
-            region_name=REGION,
-            aws_access_key_id=AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=AWS_SECRET_ACCESS_KEY
-        )
-    else:
-        s3_client = boto3.client('s3', region_name=REGION)    
-
+    s3_client = boto3.client(
+        's3',
+        region_name=REGION,
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+    )
+  
     try:
         file_name = "profile.jpg"
         file_content = await file.read()
         # 上傳圖片到S3
         s3_client.put_object(Bucket=S3_BUCKET, Key=file_name, Body=file_content)
-        print(f"{file_name} uploaded to S3.")
+        # print(f"{file_name} uploaded to S3.")
+        con, cursor = db.connect_mysql_server()
+        if cursor is not None:
+            try:
+                cursor.execute("UPDATE User SET profileImage = %s where userId = %s", 
+                               ("https://mykevinbucket.s3.ap-southeast-2.amazonaws.com/" + file_name ,token_data.userID))
+                con.commit()
+            except Exception as err:
+                print(f"Error updating order: {err}")
+                return JSONResponse(status_code=400, content={"error": True, "message": "更新訂單狀態失敗，輸入不正確或其他原因"})
+            finally:
+                con.close()
         return JSONResponse(status_code=200, content={"success": True, "message": f"{file_name} 頭貼照片已上傳完成!"})
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
