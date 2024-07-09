@@ -163,14 +163,15 @@ html{
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(30%, -40%);
-    color: black;
+    transform: translate(-50%, 50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #ffffff;
     padding: 5px;
     border-radius: 3px;
     font-size: 12px;
     white-space: nowrap;
     pointer-events: none;
-    /* transition: all 0.3s ease-in-out; */
+    z-index: 1000;
 }
 
 .profileImageContainer:hover .hoverText {

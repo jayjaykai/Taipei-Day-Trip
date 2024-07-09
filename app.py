@@ -787,6 +787,6 @@ async def upload(token_data: TokenData = Depends(verify_jwt_token), file: Upload
                 return JSONResponse(status_code=400, content={"error": True, "message": "更新訂單狀態失敗，輸入不正確或其他原因"})
             finally:
                 con.close()
-        return JSONResponse(status_code=200, content={"success": True, "data":data[0], "message": f"{file_name} 頭貼照片已上傳完成!"})
+        return JSONResponse(status_code=200, content={"success": True, "data":data[0], "message": "頭貼照片上傳成功!"})
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})

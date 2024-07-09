@@ -3,17 +3,19 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 document.addEventListener('DOMContentLoaded', (event) => {
-    let profileImage = document.getElementById('profileImage');
-    profileImage.addEventListener('mouseenter', () => {
-        hoverText.style.display = 'block';
-    });
-
-    profileImage.addEventListener('mouseleave', () => {
-        hoverText.style.display = 'none';
-    });
-    profileImage.addEventListener('click', () => {
-        window.location.href = '/member';
-    });
+    if (window.location.pathname !== '/member'){
+        let profileImage = document.getElementById('profileImage');
+        profileImage.addEventListener('mouseenter', () => {
+            hoverText.style.display = 'block';
+        });
+    
+        profileImage.addEventListener('mouseleave', () => {
+            hoverText.style.display = 'none';
+        });
+        profileImage.addEventListener('click', () => {
+            window.location.href = '/member';
+        });
+    }
 });
 // document.getElementById('loginButton').addEventListener('click', function() {
 //     // 檢查dialog是否存在，不存在使用fetch寫到body最後面
