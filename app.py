@@ -767,7 +767,7 @@ async def upload(token_data: TokenData = Depends(verify_jwt_token), file: Upload
     )
   
     try:
-        file_name = "profile.jpg"
+        file_name = f"{token_data.email}_profile.jpg"
         file_content = await file.read()
         # 上傳圖片到S3
         s3_client.put_object(Bucket=S3_BUCKET, Key=file_name, Body=file_content)
@@ -776,7 +776,7 @@ async def upload(token_data: TokenData = Depends(verify_jwt_token), file: Upload
         if cursor is not None:
             try:
                 cursor.execute("update User set profileImage = %s where id = %s", 
-                ("https://mykevinbucket.s3.ap-southeast-2.amazonaws.com/" + token_data.email+file_name ,token_data.userID))
+                ("https://mykevinbucket.s3.ap-southeast-2.amazonaws.com/" + file_name ,token_data.userID))
                 con.commit()
                 cursor.fetchall()
                 cursor.execute("select profileImage from User where id = %s",(token_data.userID,))
