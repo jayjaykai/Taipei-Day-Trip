@@ -1,29 +1,3 @@
-async function getUserInfo() {
-    let token = localStorage.getItem('token');
-    if(!token){
-        window.location.href = `/`;
-    }
-    let response = await fetch('http://54.79.121.157:8000/api/user/auth', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        }
-    });
-    let result = await response.json();
-    if (!response.ok) {
-        result = await response.json();
-        alert(result.message);
-        window.location.href = `/`;
-    }
-
-    let enrolName = document.getElementById('enrolName');
-    let enrolEmail = document.getElementById('enrolEmail');
-
-    enrolName.textContent = result.data.name;
-    enrolEmail.textContent = result.data.email;
-}
-
 function showUserInfo() {
     document.getElementById("userInfo").style.display = "block";
     document.getElementById("orderInfo").style.display = "none";
@@ -138,5 +112,3 @@ async function uploadImage(event) {
         window.location.href = `/member`;
     }
 }
-
-getUserInfo();

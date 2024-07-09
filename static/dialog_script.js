@@ -239,11 +239,18 @@ async function checkToken() {
             profileImage.src = proImg;
         }
 
-        if (window.location.pathname === '/booking') {
+        if (window.location.pathname === '/booking'){
             document.getElementById('contactName').value = result.data.name;
             document.getElementById('contactEmail').value = result.data.email;
             let username = document.getElementById('username');
             username.textContent = "您好，" + result.data.name + "，待預訂的行程如下：";
+        }
+
+        if(window.location.pathname === '/member'){
+            let enrolName = document.getElementById('enrolName');
+            let enrolEmail = document.getElementById('enrolEmail');
+            enrolName.textContent = result.data.name;
+            enrolEmail.textContent = result.data.email;
         }
     } 
     else{
