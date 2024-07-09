@@ -205,6 +205,7 @@ async function signon() {
 
 async function checkToken() {
     let token = localStorage.getItem('token');
+    let proImg = localStorage.getItem('proImg');
     let loginButton = document.getElementById('loginButton');
     // let logoutButton = document.getElementById('logoutButton');
     let profileImage = document.getElementById('profileImage');
@@ -231,7 +232,12 @@ async function checkToken() {
         loginButton.style.display = 'none';
         // logoutButton.style.display = 'inline';
         profileImage.style.display = 'inline';
-        profileImage.src = result.data.proImage;
+        if(proImg === null){
+            profileImage.src = result.data.proImage;
+        }
+        else{
+            profileImage.src = proImg;
+        }
 
         if (window.location.pathname === '/booking') {
             document.getElementById('contactName').value = result.data.name;

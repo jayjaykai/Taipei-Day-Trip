@@ -102,8 +102,7 @@ class SignOnInfo(BaseModel):
 class TokenData(BaseModel):
     userID: str
     name: str
-    email: str
-    proImage: str    
+    email: str 
 
 class BookingData(BaseModel):
     attraction_id: int
@@ -156,14 +155,14 @@ def verify_jwt_token(token: str = Depends(oauth2_scheme)) -> Union[TokenData, JS
         user_id: str = payload.get("userID")
         username: str = payload.get("username")
         email: str = payload.get("email")
-        proImage: str = payload.get("proImage")
+
         print(email)
         if user_id is None or username is None or email is None:
             return JSONResponse(
                 status_code=403,
                 content={"error": True, "message": "未登入系統，拒絕存取"}
             )
-        return TokenData(userID=user_id, name=username, email=email, proImage=proImage)
+        return TokenData(userID=user_id, name=username, email=email)
     except ExpiredSignatureError:
         return JSONResponse(
             status_code=403,
@@ -190,14 +189,14 @@ async def login(user: User):
             # print(user.email)
             # print(user.password)
             # print(hash_password(user.password))
-            cursor.execute("select id,name,email,profileImage from User where email = %s and password = %s", (user.email, hash_password(user.password)))
+            cursor.execute("select id,name,email from User where email = %s and password = %s", (user.email, hash_password(user.password)))
             data = cursor.fetchone()
 
             if data:
                 # print(f"User: {data[0]}")
                 # print(f"User email: {user.email}")
                 access_token = create_access_token(
-                    data={"userID": str(data[0]), "username": data[1], "email": data[2], "proImage":data[3]}, 
+                    data={"userID": str(data[0]), "username": data[1], "email": data[2]}, 
                     expires_delta = timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
                 )
                 return {"token": access_token}
@@ -778,13 +777,17 @@ async def upload(token_data: TokenData = Depends(verify_jwt_token), file: Upload
         if cursor is not None:
             try:
                 cursor.execute("update User set profileImage = %s where id = %s", 
-                               ("https://mykevinbucket.s3.ap-southeast-2.amazonaws.com/" + file_name ,token_data.userID))
+                ("https://mykevinbucket.s3.ap-southeast-2.amazonaws.com/" + file_name ,token_data.userID))
                 con.commit()
+                cursor.fetchall()
+                cursor.execute("select profileImage from User where id = %s",(token_data.userID,))
+                data = cursor.fetchone()
+
             except Exception as err:
                 print(f"Error updating order: {err}")
                 return JSONResponse(status_code=400, content={"error": True, "message": "更新訂單狀態失敗，輸入不正確或其他原因"})
             finally:
                 con.close()
-        return JSONResponse(status_code=200, content={"success": True, "message": f"{file_name} 頭貼照片已上傳完成!"})
+        return JSONResponse(status_code=200, content={"success": True, "data":data[0], "message": f"{file_name} 頭貼照片已上傳完成!"})
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})

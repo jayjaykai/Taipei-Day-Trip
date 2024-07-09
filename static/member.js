@@ -134,6 +134,7 @@ async function uploadImage(event) {
     }
     else{
         alert(getUploadInfo.message);
+        localStorage.setItem('proImg', getUploadInfo.data);
         window.location.href = `/member`;
     }
 }
