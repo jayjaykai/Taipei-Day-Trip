@@ -189,7 +189,7 @@ async def login(user: User):
             # print(user.email)
             # print(user.password)
             # print(hash_password(user.password))
-            cursor.execute("select id,name,email from User where email = %s and password = %s", (user.email, hash_password(user.password)))
+            cursor.execute("select id,name,email,profileImage from User where email = %s and password = %s", (user.email, hash_password(user.password)))
             data = cursor.fetchone()
 
             if data:
@@ -199,7 +199,7 @@ async def login(user: User):
                     data={"userID": str(data[0]), "username": data[1], "email": data[2]}, 
                     expires_delta = timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
                 )
-                return {"token": access_token}
+                return {"token": access_token, "proImg":data[3]}
             else:
                 return JSONResponse(status_code=400, content={"error": True, "message": "登入失敗，帳號或密碼錯誤或其他原因"})
         except Exception as err:

@@ -141,6 +141,7 @@ async function login() {
             return;
         }
         localStorage.setItem('token', result.token);
+        localStorage.setItem('proImg', getUploadInfo.data);
         
         checkToken();
         document.getElementById('email').value = '';
