@@ -212,7 +212,7 @@ async function checkToken() {
 
     if (token){
         //有token的情況下，再次檢查登入者的token資訊
-        response = await fetch('http://127.0.0.1:8000/api/user/auth', {
+        response = await fetch('http://54.79.121.157:8000/api/user/auth', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
