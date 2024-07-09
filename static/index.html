@@ -17,7 +17,12 @@
                 <div>
                     <button onclick="bookEvent()">預定行程</button>
                     <button id="loginButton" style="display:none;">登入/註冊</button>
-                    <button id="logoutButton" onclick="logout()" style="display:none;">登出系統</button>
+                    <!-- <button id="logoutButton" style="display:none;">會員中心</button> -->
+                    <!-- <img id="profileImage" class="profileImage" style="display:none;" src="https://dj5na48zn0ceq.cloudfront.net/profile.jpg" alt="Profile Image" onerror="this.onerror=null; this.src='https://dj5na48zn0ceq.cloudfront.net/default.png';"> -->
+                    <div class="profileImageContainer">
+                        <img id="profileImage" class="profileImage" alt="大頭貼">
+                        <div style="display:none;" id="hoverText" class="hoverText">會員中心</div>
+                    </div>
                 </div>
             </nav>
         </div>

@@ -2,6 +2,19 @@ document.addEventListener('DOMContentLoaded', function() {
     checkToken();
 });
 
+document.addEventListener('DOMContentLoaded', (event) => {
+    let profileImage = document.getElementById('profileImage');
+    profileImage.addEventListener('mouseenter', () => {
+        hoverText.style.display = 'block';
+    });
+
+    profileImage.addEventListener('mouseleave', () => {
+        hoverText.style.display = 'none';
+    });
+    profileImage.addEventListener('click', () => {
+        window.location.href = '/member';
+    });
+});
 // document.getElementById('loginButton').addEventListener('click', function() {
 //     // 檢查dialog是否存在，不存在使用fetch寫到body最後面
 //     // 登入畫面
@@ -193,7 +206,8 @@ async function signon() {
 async function checkToken() {
     let token = localStorage.getItem('token');
     let loginButton = document.getElementById('loginButton');
-    let logoutButton = document.getElementById('logoutButton');
+    // let logoutButton = document.getElementById('logoutButton');
+    let profileImage = document.getElementById('profileImage');
 
     if (token){
         //有token的情況下，再次檢查登入者的token資訊
@@ -207,13 +221,17 @@ async function checkToken() {
         let result = await response.json();
         if (!response.ok) {
             loginButton.style.display = 'inline';
-            logoutButton.style.display = 'none';
+            // logoutButton.style.display = 'none';
+            profileImage.style.display = 'none';
             alert(result.message);
             localStorage.removeItem('token');
             window.location.href = `/`;
         }
+        
         loginButton.style.display = 'none';
-        logoutButton.style.display = 'inline';
+        // logoutButton.style.display = 'inline';
+        profileImage.style.display = 'inline';
+        profileImage.src = result.data.proImage;
 
         if (window.location.pathname === '/booking') {
             document.getElementById('contactName').value = result.data.name;
@@ -224,7 +242,8 @@ async function checkToken() {
     } 
     else{
         loginButton.style.display = 'inline';
-        logoutButton.style.display = 'none';
+        // logoutButton.style.display = 'none';
+        profileImage.style.display = 'none';
     }
 }
 

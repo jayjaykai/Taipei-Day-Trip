@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台北一日遊</title>
+    <link rel="stylesheet" href="/static/member_styles.css">
+    <link rel="stylesheet" href="/static/thankyou_styles.css">
+    <link rel="stylesheet" href="/static/dialog_styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="nav-container">
+            <nav class="nav">
+                <h2 class="header">
+                    <a href="/">台北一日遊</a>
+                </h2>
+                <div>
+                    <button onclick="bookEvent()">預定行程</button>
+                    <button id="loginButton" style="display:none;">登入/註冊</button>
+                    <button id="logoutButton" onclick="logout()" style="display:block;">登出系統</button>
+                    <!-- <img class="profileImage" style="display:block;" alt="Profile Image"> -->
+                    <div class="profileImageContainer">
+                        <img id="profileImage" class="profileImage" alt="大頭貼">
+                    </div>
+                </div>
+            </nav>
+            <div class="options">
+                <button onclick="showUserInfo()">帳戶管理</button>
+                <button onclick="showOrderInfo()">訂單資訊</button>
+            </div>
+        </div>
+        <main>
+            <div class="content">
+                <div class="userInfo" id="userInfo" style="display: block;">
+                    <div class="userTitle">註冊姓名</div>
+                    <div class="userDetail" id="enrolName"></div>
+                    <div class="userTitle">電子郵件</div>
+                    <div class="userDetail" id="enrolEmail"></div>
+                    <div class="userTitle">頭貼照片</div>
+                    <button class="userDetail" onclick="document.getElementById('fileInput').click()">選擇圖片</button>
+                    <input type="file" id="fileInput" style="display:none" onchange="uploadImage(event)">
+                    <span class="userDetail">寬高 200 像素以上 PNG、JPG 格式</span>
+                </div>
+                <div class="orderInfo" id="orderInfo" style="display: none;">
+                    <div class="msgtitle">僅顯示最新 <span>20</span> 筆資料，或到<span>會員中心</span>查詢更多歷史訂單紀錄</div>
+                    <div class="msgtitle">您的歷史訂單紀錄如下：</div>
+                    <div class="history-lists-container">
+                        <div id="history_lists"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <footer class="footer">COPYRIGHT © 2021 台北一日遊</footer>
+    </div>
+    <script src="/static/dialog_script.js" defer></script>
+    <script src="/static/member.js" defer></script>
+</body>
+</html>

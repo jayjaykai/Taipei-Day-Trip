@@ -1,0 +1,136 @@
+* {
+    font-family: "Noto Sans TC", sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html{
+    height: 100%;
+    overflow: auto;
+}
+
+.container {
+    display: grid;
+    grid-template-areas: 
+        "main"
+        "footer";
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    padding-top: 55px;
+    min-height: 100vh;
+    /* For login modal */
+    position: relative;
+    z-index: 0;
+}
+
+.nav-container {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background-color: #ffffff;
+    z-index: 1000;
+    padding: 10px 0;
+}
+
+.nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 10px;
+}
+
+h2 {
+    color: #008080;
+    font-size: 30px;
+}
+
+.header a {
+    color: inherit; 
+    text-decoration: none;
+}
+
+.nav div {
+    display: flex;
+    justify-content: space-between;
+    height: 34px;
+    gap: 0px;
+}
+
+.nav button, .options > button {
+    background-color: #FFFFFF;
+    border: none;
+    color: #666666;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 13.3px;
+    text-align: left;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.options > button {
+    text-decoration: underline;
+}
+
+.options {
+    display: flex;
+    flex-direction: row;
+    text-align: left;
+    margin: 0 auto;
+    max-width: 1200px;
+    width: 100%;
+}
+
+main {
+    margin: 0 auto;
+    margin-top: 50px;
+    grid-area: main;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    gap: 20px;
+    padding: 0 20px;
+    padding-bottom: 20px;
+    max-width: 1200px;
+    width: 100%;
+}
+
+.content {
+    min-height: 200px; 
+}
+
+.userInfo .userDetail, .userTitle {
+    margin-bottom: 20px; 
+}
+
+.userTitle {
+    font-size: larger;
+    font-weight: bolder;
+}
+
+.userInfo > button {
+    padding: 8px 10px;
+    cursor: pointer;
+}
+
+.footer {
+    background-color: #757575;
+    padding: 20px;
+    color: #ffffff;
+    text-align: center;
+    font-size: 1em;
+    margin-top: auto;
+    width: 100%;
+    height: 100%;
+}
+
+@media(max-width:1200px) and (min-width:601px){
+
+}
+
+@media(max-width:600px){
+
+}

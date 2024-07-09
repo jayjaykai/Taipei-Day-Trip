@@ -18,6 +18,10 @@ from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from datetime import datetime, timedelta, timezone
 import requests
 import json
+import boto3
+from urllib.parse import urlparse
+import os
+import urllib3
 
 secret_key="dfjewkjfejwfjiewfjoewjfioewjf"
 
@@ -98,7 +102,8 @@ class SignOnInfo(BaseModel):
 class TokenData(BaseModel):
     userID: str
     name: str
-    email: str    
+    email: str
+    proImage: str    
 
 class BookingData(BaseModel):
     attraction_id: int
@@ -151,12 +156,13 @@ def verify_jwt_token(token: str = Depends(oauth2_scheme)) -> Union[TokenData, JS
         user_id: str = payload.get("userID")
         username: str = payload.get("username")
         email: str = payload.get("email")
+        proImage: str = payload.get("proImage")
         if user_id is None or username is None or email is None:
             return JSONResponse(
                 status_code=403,
                 content={"error": True, "message": "未登入系統，拒絕存取"}
             )
-        return TokenData(userID=user_id, name=username, email=email)
+        return TokenData(userID=user_id, name=username, email=email, proImage=proImage)
     except ExpiredSignatureError:
         return JSONResponse(
             status_code=403,
@@ -183,14 +189,14 @@ async def login(user: User):
             # print(user.email)
             # print(user.password)
             # print(hash_password(user.password))
-            cursor.execute("select id,name,email from User where email = %s and password = %s", (user.email, hash_password(user.password)))
+            cursor.execute("select id,name,email,profileImage from User where email = %s and password = %s", (user.email, hash_password(user.password)))
             data = cursor.fetchone()
 
             if data:
                 # print(f"User: {data[0]}")
                 # print(f"User email: {user.email}")
                 access_token = create_access_token(
-                    data={"userID": str(data[0]), "username": data[1], "email": data[2]}, 
+                    data={"userID": str(data[0]), "username": data[1], "email": data[2], "proImage":data[3]}, 
                     expires_delta = timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
                 )
                 return {"token": access_token}
@@ -244,7 +250,8 @@ async def checkUser(token_data: TokenData = Depends(verify_jwt_token)) :
     result = {
                 "id": token_data.userID,
                 "name": token_data.name,
-                "email": token_data.email
+                "email": token_data.email,
+                "proImage": token_data.proImage
             }
 
     return {"data": result}
@@ -554,6 +561,9 @@ async def attraction(request: Request, id: int):
 @app.get("/booking", include_in_schema=False)
 async def booking(request: Request):
 	return FileResponse("./static/booking.html", media_type="text/html")
+@app.get("/member", include_in_schema=False)
+async def member(request: Request):
+	return FileResponse("./static/member.html", media_type="text/html")
 @app.get("/thankyou", include_in_schema=False)
 async def thankyou(request: Request):
 	return FileResponse("./static/thankyou.html", media_type="text/html")
@@ -735,4 +745,36 @@ def get_top_attractions(request: Request):
         finally:
             con.close()
     else:
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+    
+@app.post("/api/upload")
+async def upload(file: UploadFile = File(...)):
+    S3_BUCKET = os.getenv('S3_BUCKET')
+    REGION = os.getenv('AWS_REGION')
+
+    print(SERVER_TYPE)
+    if SERVER_TYPE=="Local":
+        # 加載環境變數中的AWS憑證
+        AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+        if not AWS_ACCESS_KEY_ID or not AWS_SECRET_ACCESS_KEY:
+            return JSONResponse(status_code=500, content={"error": True, "message": "AWS credentials not found in environment variables"})
+
+        s3_client = boto3.client(
+            's3',
+            region_name=REGION,
+            aws_access_key_id=AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+        )
+    else:
+        s3_client = boto3.client('s3', region_name=REGION)    
+
+    try:
+        file_name = "profile.jpg"
+        file_content = await file.read()
+        # 上傳圖片到S3
+        s3_client.put_object(Bucket=S3_BUCKET, Key=file_name, Body=file_content)
+        print(f"{file_name} uploaded to S3.")
+        return JSONResponse(status_code=200, content={"success": True, "message": f"{file_name} 頭貼照片已上傳完成!"})
+    except Exception as e:
         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
