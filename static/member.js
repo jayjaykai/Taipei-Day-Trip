@@ -11,6 +11,9 @@ function showOrderInfo() {
 
 function EditUserEmail() {
     const enrolEmailDiv = document.getElementById('enrolEmail');
+    if (document.getElementById('emailInput')) {
+        return;
+    }
     const emailText = enrolEmailDiv.textContent;
 
     let input = document.createElement('input');
@@ -79,6 +82,9 @@ function validateEmail(email) {
 
 async function EditUserName(){
     let enrolNameDiv = document.getElementById('enrolName');
+    if (document.getElementById('nameInput')) {
+        return;
+    }
     let currentName = enrolNameDiv.textContent;
 
     let input = document.createElement('input');

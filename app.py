@@ -487,10 +487,10 @@ async def create_order(payment_request: PaymentRequest, token_data: TokenData = 
             message = "付款失敗"
             print(message)
 
-        print(response_data)
-        print(response_data['order_number'])
-        print(response_data['status'])
-        print(response_data['msg'])
+        # print(response_data)
+        # print(response_data['order_number'])
+        # print(response_data['status'])
+        # print(response_data['msg'])
 
         Result = {
             "number": response_data['order_number'],
