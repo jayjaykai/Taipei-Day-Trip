@@ -9,6 +9,136 @@ function showOrderInfo() {
     getOderInfo();
 }
 
+function EditUserEmail() {
+    const enrolEmailDiv = document.getElementById('enrolEmail');
+    const emailText = enrolEmailDiv.textContent;
+
+    let input = document.createElement('input');
+    input.className = 'input-value';
+    input.type = 'email';
+    input.id = 'emailInput';
+    input.value = emailText;
+
+    let buttonContainer = document.createElement('div');
+    buttonContainer.className = 'button-container';
+
+    let saveButton = document.createElement('button');
+    saveButton.textContent = '更新 Email';
+    saveButton.onclick = () => saveEmail(input.value);
+
+    let cancelButton = document.createElement('button');
+    cancelButton.textContent = '取消';
+    cancelButton.onclick = () => cancelEdit(emailText);
+
+    buttonContainer.appendChild(saveButton);
+    buttonContainer.appendChild(cancelButton);
+
+    enrolEmailDiv.innerHTML = '';
+    enrolEmailDiv.appendChild(input);
+    enrolEmailDiv.appendChild(buttonContainer);
+}
+
+async function saveEmail(newEmail) {
+    if (validateEmail(newEmail)) {
+        let token = localStorage.getItem('token');
+        let response = await fetch('http://127.0.0.1:8000/api/user/edit', {
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ email: newEmail })
+        });
+
+        let editUserInfo = await response.json();
+        if(!response.ok){
+            console.error('HTTP error', response.status);
+            alert(editUserInfo.message);
+            return;
+        }
+        else{
+            const enrolEmailDiv = document.getElementById('enrolEmail');
+            enrolEmailDiv.textContent = newEmail;
+        }
+        alert(editUserInfo.message);
+    } else {
+        alert('請輸入有效的電子郵件');
+    }
+}
+
+function cancelEdit(originalEmail) {
+    let enrolEmailDiv = document.getElementById('enrolEmail');
+    enrolEmailDiv.textContent = originalEmail;
+}
+
+function validateEmail(email) {
+    const re = /\S+@\S+\.\S+/;
+    return re.test(email);
+}
+
+async function EditUserName(){
+    let enrolNameDiv = document.getElementById('enrolName');
+    let currentName = enrolNameDiv.textContent;
+
+    let input = document.createElement('input');
+    input.className = 'input-value';
+    input.type = 'text';
+    input.id = 'nameInput';
+    input.value = currentName;
+
+    let buttonContainer = document.createElement('div');
+    buttonContainer.className = 'button-container';
+
+    let saveButton = document.createElement('button');
+    saveButton.textContent = '更新註冊姓名';
+    saveButton.onclick = () => saveUserName(input.value);
+
+    let cancelButton = document.createElement('button');
+    cancelButton.textContent = '取消';
+    cancelButton.onclick = () => cancelNameEdit(currentName);
+
+    buttonContainer.appendChild(saveButton);
+    buttonContainer.appendChild(cancelButton);
+
+
+    enrolNameDiv.innerHTML = '';
+    enrolNameDiv.appendChild(input);
+    enrolNameDiv.appendChild(buttonContainer);
+}
+
+async function saveUserName(newName) {
+    if (!newName.trim()) {
+        alert('新姓名不能為空值!');
+        return;
+    }
+
+    let token = localStorage.getItem('token');
+    let response = await fetch('http://54.79.121.157:8000/api/user/edit', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ name: newName })
+    });
+
+    let editUserInfo = await response.json();
+    if (!response.ok) {
+        console.error('HTTP error', response.status);
+        alert(editUserInfo.message);
+        return;
+    } else {
+        const enrolNameDiv = document.getElementById('enrolName');
+        enrolNameDiv.textContent = newName;
+        alert(editUserInfo.message);
+    }
+}
+
+function cancelNameEdit(originalName) {
+    const enrolNameDiv = document.getElementById('enrolName');
+    enrolNameDiv.textContent = originalName;
+}
+
 async function getOderInfo(){
     let token = localStorage.getItem('token');
     let response = await fetch('http://54.79.121.157:8000/api/orders', {

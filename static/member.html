@@ -18,7 +18,7 @@
                 <div>
                     <button onclick="bookEvent()">預定行程</button>
                     <button id="loginButton" style="display:none;">登入/註冊</button>
-                    <button id="logoutButton" onclick="logout()" style="display:block;">登出系統</button>
+                    <button id="logoutButton" onclick="logout()" style="display:block;">登出</button>
                     <!-- <img class="profileImage" style="display:block;" alt="Profile Image"> -->
                     <div class="profileImageContainer">
                         <img id="profileImage" class="profileImage" alt="大頭貼">
@@ -34,9 +34,15 @@
             <div class="content">
                 <div class="userInfo" id="userInfo" style="display: block;">
                     <div class="userTitle">註冊姓名</div>
-                    <div class="userDetail" id="enrolName"></div>
+                    <div class="userInfoEdit">
+                        <div class="userDetail" id="enrolName"></div>
+                        <button class="EditBtn" onclick="EditUserName()"></button>
+                    </div>
                     <div class="userTitle">電子郵件</div>
-                    <div class="userDetail" id="enrolEmail"></div>
+                    <div class="userInfoEdit">
+                        <div class="userDetail" id="enrolEmail"></div>
+                        <button class="EditBtn" onclick="EditUserEmail()"></button>
+                    </div>
                     <div class="userTitle">頭貼照片</div>
                     <button class="userDetail" onclick="document.getElementById('fileInput').click()">選擇圖片</button>
                     <input type="file" id="fileInput" style="display:none" onchange="uploadImage(event)">

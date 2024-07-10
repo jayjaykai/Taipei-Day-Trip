@@ -102,7 +102,7 @@ main {
     min-height: 200px; 
 }
 
-.userInfo .userDetail, .userTitle {
+.userInfo, .userDetail, .userTitle {
     margin-bottom: 20px; 
 }
 
@@ -111,9 +111,52 @@ main {
     font-weight: bolder;
 }
 
+.userDetail{
+    font-size: 16px;
+    margin: auto 0;
+}
+
 .userInfo > button {
     padding: 8px 10px;
     cursor: pointer;
+}
+
+.userInfoEdit {
+    display: flex;
+    margin: 20px 0;
+}
+
+.EditBtn{
+    margin: 0 10px;
+    padding: 10px 10px;
+    background-image: url("edit.png");
+    background-color: #ffffff;
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    border: none;
+    cursor: pointer; 
+}
+
+.button-container {
+    display: flex;
+    gap: 10px;
+}
+
+.button-container button {
+    margin-top: 5px;
+    padding: 5px 10px;
+    color: #444444;
+    background-color: #eeeeee;
+    border: 1px solid #dddddd;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.input-value{
+    font-size: 16px;
+    color: #444444;
+    border: 1px solid #dddddd;
+    padding: 6px;
 }
 
 .footer {
@@ -132,5 +175,7 @@ main {
 }
 
 @media(max-width:600px){
-
+    .userDetail{
+        font-size: 12px;
+    }
 }

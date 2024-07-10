@@ -790,3 +790,34 @@ async def upload(token_data: TokenData = Depends(verify_jwt_token), file: Upload
         return JSONResponse(status_code=200, content={"success": True, "data":data[0], "message": "頭貼照片上傳成功!"})
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+    
+@app.post("/api/user/edit")
+async def editInfo(request: Request, token_data: TokenData = Depends(verify_jwt_token)):
+    update_request = await request.json()
+    new_email = update_request.get("email")
+    new_name = update_request.get("name")
+    
+    if new_email is None and new_name is None:
+        return JSONResponse(status_code=400, content={"error": True, "message": "Invalid email address or name"})
+    con, cursor = db.connect_mysql_server()
+    if cursor is not None:
+        try:
+           if new_email:
+                cursor.execute("select count(*) from User where email = %s and id != %s", (new_email, token_data.userID))
+                count = cursor.fetchone()[0]
+                if count > 0:
+                    return JSONResponse(status_code=400, content={"error": True, "message": "此 Email 帳號已被使用，請輸入其他 Email!"})
+                cursor.fetchall()
+                cursor.execute("update User set email = %s where id = %s", (new_email, token_data.userID))
+                con.commit()
+                return JSONResponse(status_code=200, content={"success": True, "message": "Email更新成功!"})
+           elif new_name:
+                cursor.execute("update User set name = %s where id = %s", (new_name, token_data.userID))
+                con.commit()
+                return JSONResponse(status_code=200, content={"success": True, "message": "姓名更新成功!"})
+        except Exception as err:
+            return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+        finally:
+            con.close()
+    else:
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})    
