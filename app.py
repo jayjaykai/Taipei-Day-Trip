@@ -157,28 +157,29 @@ def verify_jwt_token(token: str = Depends(oauth2_scheme)) -> Union[TokenData, JS
         username: str = payload.get("username")
         email: str = payload.get("email")
 
-        print(email)
         if user_id is None or username is None or email is None:
-           return JSONResponse(
-           status_code=403,
-           content={"error": True, "message": "未登入系統，拒絕存取"}
-           )
+            print("Missing fields in token payload")
+            return JSONResponse(
+                    status_code=403,
+                    content={"error": True, "message": "未登入系統，拒絕存取"}
+                )
         
         return TokenData(userID=user_id, name=username, email=email)
-    except ExpiredSignatureError:
+    except ExpiredSignatureError as e:
+        print(f"Token expired: {str(e)}")
         return JSONResponse(
             status_code=403,
             content={"error": True, "message": "未登入系統，拒絕存取"}
         )
-    except JWTError:
+    except JWTError as e:
+        print(f"JWT error: {str(e)}")
         return JSONResponse(
             status_code=403,
             content={"error": True, "message": "未登入系統，拒絕存取"}
         )
     except Exception as e:
+        print(f"Unexpected error: {str(e)}")
         return JSONResponse(
-            # status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            # content={"error": True, "message": f"Unexpected error: {str(e)}"}
             status_code=403,
             content={"error": True, "message": "未登入系統，拒絕存取"}
         )
@@ -245,7 +246,7 @@ async def signOn(user: SignOnInfo):
 
 @app.get("/api/user/auth")
 async def checkUser(token_data: TokenData = Depends(verify_jwt_token)) :
-    # print(token_data)
+    print(token_data)
     # 判斷 token_data 是不是 JSONResponse 資料型態，如果是直接返回，如果是正常的資料繼續往下走
     if isinstance(token_data, JSONResponse):
         return token_data
@@ -814,8 +815,8 @@ async def editInfo(request: Request, token_data: TokenData = Depends(verify_jwt_
                 con.commit()
 
                 new_token_data = {
-                    "sub": token_data.userID,
-                    "name": token_data.name,
+                    "userID": token_data.userID,
+                    "username": token_data.name,
                     "email": new_email
                 }
                 new_token = create_access_token(data=new_token_data, expires_delta=timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS))
@@ -824,8 +825,8 @@ async def editInfo(request: Request, token_data: TokenData = Depends(verify_jwt_
                 cursor.execute("update User set name = %s where id = %s", (new_name, token_data.userID))
                 con.commit()
                 new_token_data = {
-                    "sub": token_data.userID,
-                    "name": new_name,
+                    "userID": token_data.userID,
+                    "username": new_name,
                     "email": token_data.email
                 }
                 new_token = create_access_token(data=new_token_data, expires_delta=timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS))
