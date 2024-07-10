@@ -810,11 +810,24 @@ async def editInfo(request: Request, token_data: TokenData = Depends(verify_jwt_
                 cursor.fetchall()
                 cursor.execute("update User set email = %s where id = %s", (new_email, token_data.userID))
                 con.commit()
-                return JSONResponse(status_code=200, content={"success": True, "message": "Email更新成功!"})
+
+                new_token_data = {
+                    "sub": token_data.userID,
+                    "name": token_data.name,
+                    "email": new_email
+                }
+                new_token = create_access_token(data=new_token_data)
+                return JSONResponse(status_code=200, content={"success": True, "message": "Email更新成功!", "token": new_token})
            elif new_name:
                 cursor.execute("update User set name = %s where id = %s", (new_name, token_data.userID))
                 con.commit()
-                return JSONResponse(status_code=200, content={"success": True, "message": "姓名更新成功!"})
+                new_token_data = {
+                    "sub": token_data.userID,
+                    "name": new_name,
+                    "email": token_data.email
+                }
+                new_token = create_access_token(data=new_token_data)
+                return JSONResponse(status_code=200, content={"success": True, "message": "姓名更新成功!", "token": new_token})
         except Exception as err:
             return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
         finally:

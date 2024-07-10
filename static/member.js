@@ -61,6 +61,7 @@ async function saveEmail(newEmail) {
             enrolEmailDiv.textContent = newEmail;
         }
         alert(editUserInfo.message);
+        localStorage.setItem('token', editUserInfo.token);
     } else {
         alert('請輸入有效的電子郵件');
     }
@@ -131,6 +132,7 @@ async function saveUserName(newName) {
         const enrolNameDiv = document.getElementById('enrolName');
         enrolNameDiv.textContent = newName;
         alert(editUserInfo.message);
+        localStorage.setItem('token', editUserInfo.token);
     }
 }
 
