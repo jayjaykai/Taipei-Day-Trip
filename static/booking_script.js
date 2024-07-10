@@ -213,7 +213,7 @@ async function onSubmit(event) {
 // async function confirmAndPay(){
 //     if (confirm("是否確認要訂購並付款？")){
 //         token = localStorage.getItem('token');
-//         let response = await fetch('http://127.0.0.1:8000/api/orders', {
+//         let response = await fetch('http://54.79.121.157:8000/api/orders', {
 //             method: 'POST',
 //             headers:{
 //                 'Content-Type': 'application/json',
@@ -239,7 +239,7 @@ async function onSubmit(event) {
 // async function getUserData() { 
 //     try {
 //         let token = localStorage.getItem('token');
-//         let response = await fetch('http://127.0.0.1:8000/api/user/auth', {
+//         let response = await fetch('http://54.79.121.157:8000/api/user/auth', {
 //             method: 'GET',
 //             headers: {
 //                 'Content-Type': 'application/json',
@@ -271,7 +271,7 @@ async function onSubmit(event) {
 
 // async function getUserBookingData() { 
 //     let token = localStorage.getItem('token');
-//     let response = await fetch('http://127.0.0.1:8000/api/booking', {
+//     let response = await fetch('http://54.79.121.157:8000/api/booking', {
 //         method: 'GET',
 //         headers: {
 //             'Content-Type': 'application/json',

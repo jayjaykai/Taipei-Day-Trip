@@ -147,7 +147,8 @@ def create_access_token(data: dict, expires_delta: timedelta):
     expire = datetime.now(timezone.utc) + expires_delta
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt.decode("utf-8")
+    print(f"Encoded JWT: {encoded_jwt}")
+    return encoded_jwt
 
 def verify_jwt_token(token: str = Depends(oauth2_scheme)) -> Union[TokenData, JSONResponse]:
     try:
