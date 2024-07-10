@@ -147,7 +147,7 @@ def create_access_token(data: dict, expires_delta: timedelta):
     expire = datetime.now(timezone.utc) + expires_delta
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+    return encoded_jwt.decode("utf-8")
 
 def verify_jwt_token(token: str = Depends(oauth2_scheme)) -> Union[TokenData, JSONResponse]:
     try:
@@ -158,10 +158,11 @@ def verify_jwt_token(token: str = Depends(oauth2_scheme)) -> Union[TokenData, JS
 
         print(email)
         if user_id is None or username is None or email is None:
-            return JSONResponse(
-                status_code=403,
-                content={"error": True, "message": "未登入系統，拒絕存取"}
-            )
+           return JSONResponse(
+           status_code=403,
+           content={"error": True, "message": "未登入系統，拒絕存取"}
+           )
+        
         return TokenData(userID=user_id, name=username, email=email)
     except ExpiredSignatureError:
         return JSONResponse(
@@ -816,7 +817,7 @@ async def editInfo(request: Request, token_data: TokenData = Depends(verify_jwt_
                     "name": token_data.name,
                     "email": new_email
                 }
-                new_token = create_access_token(data=new_token_data)
+                new_token = create_access_token(data=new_token_data, expires_delta=timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS))
                 return JSONResponse(status_code=200, content={"success": True, "message": "Email更新成功!", "token": new_token})
            elif new_name:
                 cursor.execute("update User set name = %s where id = %s", (new_name, token_data.userID))
@@ -826,9 +827,11 @@ async def editInfo(request: Request, token_data: TokenData = Depends(verify_jwt_
                     "name": new_name,
                     "email": token_data.email
                 }
-                new_token = create_access_token(data=new_token_data)
+                new_token = create_access_token(data=new_token_data, expires_delta=timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS))
+                print(f"New Token: {new_token}") 
                 return JSONResponse(status_code=200, content={"success": True, "message": "姓名更新成功!", "token": new_token})
         except Exception as err:
+            print(f"Error: {err}")
             return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
         finally:
             con.close()
