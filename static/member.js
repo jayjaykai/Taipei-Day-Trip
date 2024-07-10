@@ -41,7 +41,7 @@ function EditUserEmail() {
 async function saveEmail(newEmail) {
     if (validateEmail(newEmail)) {
         let token = localStorage.getItem('token');
-        let response = await fetch('http://127.0.0.1:8000/api/user/edit', {
+        let response = await fetch('http://54.79.121.157:8000/api/user/edit', {
             method: 'POST',
             headers:{
                 'Content-Type': 'application/json',
