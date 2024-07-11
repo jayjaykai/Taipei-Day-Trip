@@ -17,7 +17,12 @@
                 <div>
                     <button onclick="bookEvent()">預定行程</button>
                     <button id="loginButton" style="display:none;">登入/註冊</button>
-                    <button id="logoutButton" onclick="logout()" style="display:none;">登出系統</button>
+                    <!-- <button id="logoutButton" style="display:none;">會員中心</button> -->
+                    <!-- <img id="profileImage" class="profileImage" style="display:none;" src="https://dj5na48zn0ceq.cloudfront.net/profile.jpg" alt="Profile Image" onerror="this.onerror=null; this.src='https://dj5na48zn0ceq.cloudfront.net/default.png';"> -->
+                    <div class="profileImageContainer">
+                        <img id="profileImage" class="profileImage" alt="大頭貼">
+                        <div style="display:none;" id="hoverText" class="hoverText">會員中心</div>
+                    </div>
                 </div>
             </nav>
         </div>
@@ -30,6 +35,10 @@
                 <div class="search">
                     <input type="text" id="mrtInput" placeholder="輸入景點名稱查詢">
                     <button onclick="searchByMRT()"></button>
+                </div>
+                <div class="latest-search-container">
+                    <div class="latest-search">最新搜尋景點：</div>
+                    <span id="list-new-search-spot"></span>
                 </div>
             </div>
         </div>

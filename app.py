@@ -1,5 +1,6 @@
 from typing import Optional, Union
-from dbconfig import db
+from model.dbconfig import db
+from model.cache import Cache
 from fastapi import *
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
@@ -17,6 +18,10 @@ from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from datetime import datetime, timedelta, timezone
 import requests
 import json
+import boto3
+from urllib.parse import urlparse
+import os
+import urllib3
 
 secret_key="dfjewkjfejwfjiewfjoewjfioewjf"
 
@@ -45,6 +50,9 @@ TAPPAY_MERCHANT_ID = os.getenv("TAPPAY_MERCHANT_ID")
 
 # timedelta setting
 SERVER_TYPE = os.getenv("SERVER_TYPE")
+
+# Redis
+Cache.redis_client = Cache.create_redis_client() 
 
 # print("TAPPAY_API_URL", os.getenv("TAPPAY_API_URL"))
 
@@ -83,7 +91,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/user/auth")
 
 # 自定義User資料 model
 class User(BaseModel):
-    email: EmailStr
+    email: str
     password: str
     
 class SignOnInfo(BaseModel):
@@ -94,7 +102,7 @@ class SignOnInfo(BaseModel):
 class TokenData(BaseModel):
     userID: str
     name: str
-    email: str    
+    email: str 
 
 class BookingData(BaseModel):
     attraction_id: int
@@ -139,6 +147,7 @@ def create_access_token(data: dict, expires_delta: timedelta):
     expire = datetime.now(timezone.utc) + expires_delta
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    print(f"Encoded JWT: {encoded_jwt}")
     return encoded_jwt
 
 def verify_jwt_token(token: str = Depends(oauth2_scheme)) -> Union[TokenData, JSONResponse]:
@@ -147,47 +156,34 @@ def verify_jwt_token(token: str = Depends(oauth2_scheme)) -> Union[TokenData, JS
         user_id: str = payload.get("userID")
         username: str = payload.get("username")
         email: str = payload.get("email")
+
         if user_id is None or username is None or email is None:
+            print("Missing fields in token payload")
             return JSONResponse(
-                status_code=403,
-                content={"error": True, "message": "未登入系統，拒絕存取"}
-            )
+                    status_code=403,
+                    content={"error": True, "message": "未登入系統，拒絕存取"}
+                )
+        
         return TokenData(userID=user_id, name=username, email=email)
-    except ExpiredSignatureError:
+    except ExpiredSignatureError as e:
+        print(f"Token expired: {str(e)}")
         return JSONResponse(
             status_code=403,
             content={"error": True, "message": "未登入系統，拒絕存取"}
         )
-    except JWTError:
+    except JWTError as e:
+        print(f"JWT error: {str(e)}")
         return JSONResponse(
             status_code=403,
             content={"error": True, "message": "未登入系統，拒絕存取"}
         )
     except Exception as e:
+        print(f"Unexpected error: {str(e)}")
         return JSONResponse(
-            # status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            # content={"error": True, "message": f"Unexpected error: {str(e)}"}
             status_code=403,
             content={"error": True, "message": "未登入系統，拒絕存取"}
         )
 
-# def verify_jwt_token(token: str = Depends(oauth2_scheme)) -> TokenData:
-#     credentials_exception = HTTPException(
-#         status_code=status.HTTP_403_FORBIDDEN,
-#         detail="未登入系統，拒絕存取",
-#         headers={"WWW-Authenticate": "Bearer"},
-#     )
-#     try:
-#         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-#         user_id: str = payload.get("userID")
-#         username: str = payload.get("username")
-#         email: str = payload.get("email")
-#         if user_id is None or username is None or email is None:
-#             raise credentials_exception
-#         return TokenData(userID=user_id, name=username, email=email)
-#     except (ExpiredSignatureError, JWTError):
-#         raise credentials_exception
-    
 @app.put("/api/user/auth")
 async def login(user: User):
     con, cursor = db.connect_mysql_server()
@@ -196,7 +192,7 @@ async def login(user: User):
             # print(user.email)
             # print(user.password)
             # print(hash_password(user.password))
-            cursor.execute("select id,name,email from User where email = %s and password = %s", (user.email, hash_password(user.password)))
+            cursor.execute("select id,name,email,profileImage from User where email = %s and password = %s", (user.email, hash_password(user.password)))
             data = cursor.fetchone()
 
             if data:
@@ -206,7 +202,7 @@ async def login(user: User):
                     data={"userID": str(data[0]), "username": data[1], "email": data[2]}, 
                     expires_delta = timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
                 )
-                return {"token": access_token}
+                return {"token": access_token, "proImg":data[3]}
             else:
                 return JSONResponse(status_code=400, content={"error": True, "message": "登入失敗，帳號或密碼錯誤或其他原因"})
         except Exception as err:
@@ -250,14 +246,14 @@ async def signOn(user: SignOnInfo):
 
 @app.get("/api/user/auth")
 async def checkUser(token_data: TokenData = Depends(verify_jwt_token)) :
-    # print(token_data)
+    print(token_data)
     # 判斷 token_data 是不是 JSONResponse 資料型態，如果是直接返回，如果是正常的資料繼續往下走
     if isinstance(token_data, JSONResponse):
         return token_data
     result = {
                 "id": token_data.userID,
                 "name": token_data.name,
-                "email": token_data.email
+                "email": token_data.email,
             }
 
     return {"data": result}
@@ -491,10 +487,10 @@ async def create_order(payment_request: PaymentRequest, token_data: TokenData = 
             message = "付款失敗"
             print(message)
 
-        print(response_data)
-        print(response_data['order_number'])
-        print(response_data['status'])
-        print(response_data['msg'])
+        # print(response_data)
+        # print(response_data['order_number'])
+        # print(response_data['status'])
+        # print(response_data['msg'])
 
         Result = {
             "number": response_data['order_number'],
@@ -567,6 +563,9 @@ async def attraction(request: Request, id: int):
 @app.get("/booking", include_in_schema=False)
 async def booking(request: Request):
 	return FileResponse("./static/booking.html", media_type="text/html")
+@app.get("/member", include_in_schema=False)
+async def member(request: Request):
+	return FileResponse("./static/member.html", media_type="text/html")
 @app.get("/thankyou", include_in_schema=False)
 async def thankyou(request: Request):
 	return FileResponse("./static/thankyou.html", media_type="text/html")
@@ -575,8 +574,8 @@ async def thankyou(request: Request):
 @app.get("/api/attractions")
 def get_attractions(page: int = 0, keyword: Optional[str] = Query(None)):
     cache_key = f"indexpagecache#{page}_keyword_{keyword}"
-    if db.is_redis_available():
-        cached_data = db.redis_client.get(cache_key)
+    if Cache.is_redis_available():
+        cached_data = Cache.redis_client.get(cache_key)
 
     if cached_data:
         print(f"Get Index Page{page}Cache!")
@@ -632,7 +631,8 @@ def get_attractions(page: int = 0, keyword: Optional[str] = Query(None)):
                             "lng": longitude,
                             "images": images
                         })
-                    db.redis_client.set(cache_key, json.dumps({"nextPage": next_page, "data": result}), ex=600)
+                    if Cache.is_redis_available():    
+                        Cache.redis_client.set(cache_key, json.dumps({"nextPage": next_page, "data": result}), ex=600)
                     return {"nextPage": next_page, "data": result}
             except Exception as err:
                     return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
@@ -645,8 +645,9 @@ def get_attractions(page: int = 0, keyword: Optional[str] = Query(None)):
 def get_attraction(attractionId: int):
     cache_key = f"attraction:{attractionId}"
 
-    if db.is_redis_available():
-        cached_result = db.redis_client.get(cache_key)
+    if Cache.is_redis_available():
+        Cache.update_top_searches(attractionId)
+        cached_result = Cache.redis_client.get(cache_key)
         if cached_result:
             print("Use Redis Cache!")
             # print(cached_result)
@@ -686,9 +687,9 @@ def get_attraction(attractionId: int):
                 "images": images
             }
 
-            if db.is_redis_available():
+            if Cache.is_redis_available():
                 # redis_client.setex(cache_key, timedelta(minutes=10), json.dumps(result))
-                db.redis_client.set(cache_key, json.dumps(result), ex=300)
+                Cache.redis_client.set(cache_key, json.dumps(result), ex=300)
             return {"data": result}
         except Exception as err:
             return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
@@ -716,3 +717,125 @@ def get_mrts():
             con.close()
     else:
         return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+    
+@app.get("/api/top-attractions")
+def get_top_attractions(request: Request):
+    top_searches = Cache.get_top_searches()
+    # print("top_searches", top_searches)
+    attractions = []
+
+    if not top_searches:
+        return JSONResponse(status_code=200, content={"attractions": attractions})
+    
+    con, cursor = db.connect_mysql_server()
+    if cursor is not None:
+        try:
+            placeholders = ','.join(['%s'] * len(top_searches))
+            query = f"select id, name from Attraction where id in ({placeholders}) order by field(id, {placeholders})"
+            cursor.execute(query, top_searches + top_searches)
+            results = cursor.fetchall()
+            # 處理每一條查詢結果
+            for row in results:
+                id, name = row
+                attractions.append({
+                    "id": id,
+                    "name": name
+            })
+            return JSONResponse(status_code=200, content={"attractions": attractions})
+        except Exception as err:
+            return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+        finally:
+            con.close()
+    else:
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+    
+@app.post("/api/upload")
+async def upload(token_data: TokenData = Depends(verify_jwt_token), file: UploadFile = File(...)):
+    if isinstance(token_data, JSONResponse):
+        return token_data
+    # 加載環境變數中的AWS憑證
+    S3_BUCKET = os.getenv('S3_BUCKET')
+    REGION = os.getenv('AWS_REGION')
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+    
+    if not AWS_ACCESS_KEY_ID or not AWS_SECRET_ACCESS_KEY:
+        return JSONResponse(status_code=500, content={"error": True, "message": "AWS credentials not found in environment variables"})
+
+    s3_client = boto3.client(
+        's3',
+        region_name=REGION,
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+    )
+  
+    try:
+        file_name = f"{token_data.email}_profile.jpg"
+        file_content = await file.read()
+        # 上傳圖片到S3
+        s3_client.put_object(Bucket=S3_BUCKET, Key=file_name, Body=file_content)
+        print(f"{file_name} uploaded to S3.")
+        con, cursor = db.connect_mysql_server()
+        if cursor is not None:
+            try:
+                cursor.execute("update User set profileImage = %s where id = %s", 
+                ("https://mykevinbucket.s3.ap-southeast-2.amazonaws.com/" + file_name ,token_data.userID))
+                con.commit()
+                cursor.fetchall()
+                cursor.execute("select profileImage from User where id = %s",(token_data.userID,))
+                data = cursor.fetchone()
+
+            except Exception as err:
+                print(f"Error updating order: {err}")
+                return JSONResponse(status_code=400, content={"error": True, "message": "更新訂單狀態失敗，輸入不正確或其他原因"})
+            finally:
+                con.close()
+        return JSONResponse(status_code=200, content={"success": True, "data":data[0], "message": "頭貼照片上傳成功!"})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+    
+@app.post("/api/user/edit")
+async def editInfo(request: Request, token_data: TokenData = Depends(verify_jwt_token)):
+    update_request = await request.json()
+    new_email = update_request.get("email")
+    new_name = update_request.get("name")
+    
+    if new_email is None and new_name is None:
+        return JSONResponse(status_code=400, content={"error": True, "message": "Invalid email address or name"})
+    con, cursor = db.connect_mysql_server()
+    if cursor is not None:
+        try:
+           if new_email:
+                cursor.execute("select count(*) from User where email = %s and id != %s", (new_email, token_data.userID))
+                count = cursor.fetchone()[0]
+                if count > 0:
+                    return JSONResponse(status_code=400, content={"error": True, "message": "此 Email 帳號已被使用，請輸入其他 Email!"})
+                cursor.fetchall()
+                cursor.execute("update User set email = %s where id = %s", (new_email, token_data.userID))
+                con.commit()
+
+                new_token_data = {
+                    "userID": token_data.userID,
+                    "username": token_data.name,
+                    "email": new_email
+                }
+                new_token = create_access_token(data=new_token_data, expires_delta=timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS))
+                return JSONResponse(status_code=200, content={"success": True, "message": "Email更新成功!", "token": new_token})
+           elif new_name:
+                cursor.execute("update User set name = %s where id = %s", (new_name, token_data.userID))
+                con.commit()
+                new_token_data = {
+                    "userID": token_data.userID,
+                    "username": new_name,
+                    "email": token_data.email
+                }
+                new_token = create_access_token(data=new_token_data, expires_delta=timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS))
+                print(f"New Token: {new_token}") 
+                return JSONResponse(status_code=200, content={"success": True, "message": "姓名更新成功!", "token": new_token})
+        except Exception as err:
+            print(f"Error: {err}")
+            return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+        finally:
+            con.close()
+    else:
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})    

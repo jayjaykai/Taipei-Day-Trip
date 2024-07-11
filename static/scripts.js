@@ -119,6 +119,38 @@ async function addMrtsList() {
     }
 }
 
+async function getTopList() {
+    try {
+        let response = await fetch("http://54.79.121.157:8000/api/top-attractions", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+        let result = await response.json();
+
+        const listNewSearchSpot = document.getElementById('list-new-search-spot');
+        listNewSearchSpot.innerHTML = '';
+
+        for (let i = 0; i < result.attractions.length; i++) {
+            let attraction = result.attractions[i];
+            let topList = document.createElement('span');
+            topList.textContent = attraction.name;
+            // 添加 onclick 事件，使用id來帶入資料
+            topList.setAttribute('data-id', attraction.id);
+            topList.setAttribute('onclick', 'goToAttractionPage(this)');
+            listNewSearchSpot.appendChild(topList);
+
+            // 添加空格或者逗號來分隔景點名稱
+            if (i < result.attractions.length - 1) {
+                listNewSearchSpot.appendChild(document.createTextNode(', '));
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching top attractions:', error);
+    }
+}
+
 async function fetchAttractionsByKeyword(keyword) {
     currentPage = 0;
     currentKeyword = keyword;
@@ -200,6 +232,7 @@ function shiftRight() {
 
     getData();
     addMrtsList();
+    getTopList();
 
     window.addEventListener('scroll', () => {
         // console.log('scrolling...');

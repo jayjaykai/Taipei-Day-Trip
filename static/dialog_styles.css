@@ -136,3 +136,44 @@ html{
 .modal-content p a:hover {
     text-decoration: underline;
 }
+
+/* .profileImage {
+    display: block;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+} */
+
+.profileImageContainer {
+    position: relative;
+    display: inline-block;
+}
+
+.profileImage {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: none;
+}
+
+.hoverText {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, 50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #ffffff;
+    padding: 5px;
+    border-radius: 3px;
+    font-size: 12px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.profileImageContainer:hover .hoverText {
+    display: block;
+}

@@ -131,6 +131,37 @@ h2 {
     justify-content: center;
 }
 
+.latest-search-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; 
+    margin-top: 5px;
+    width: 100%; 
+}
+
+.latest-search {
+    font-size: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    text-align: left;
+    color: #ffffff;
+}
+
+#list-new-search-spot {
+    font-size: 16px;
+    text-align: left;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+}
+
+#list-new-search-spot span {
+    /* margin-right: 5px; */
+    cursor: pointer;
+}
+
+#list-new-search-spot span:hover {
+    color: #008080;
+} 
+
 .slogan {
     color: #ffffff;
     text-align: left;

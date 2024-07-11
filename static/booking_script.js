@@ -111,28 +111,18 @@ async function deleteEvent(){
     }
 }
 
-// function disableInteraction() {
-//     document.getElementById('card-number').setAttribute('contenteditable', 'false');
-//     document.getElementById('card-expiration-date').setAttribute('contenteditable', 'false');
-//     document.getElementById('card-ccv').setAttribute('contenteditable', 'false');
-//     document.querySelectorAll('button, input').forEach(element => {
-//         element.disabled = true;
-//     });
-// }
+function disableInteraction() {
+    $('button[type="submit"]').attr('disabled', true);
+}
 
-// function enableInteraction() {
-//     document.getElementById('card-number').setAttribute('contenteditable', 'true');
-//     document.getElementById('card-expiration-date').setAttribute('contenteditable', 'true');
-//     document.getElementById('card-ccv').setAttribute('contenteditable', 'true');
-//     document.querySelectorAll('button, input').forEach(element => {
-//         element.disabled = false;
-//     });
-// }
+function enableInteraction() {
+    $('button[type="submit"]').removeAttr('disabled');
+}
 
 async function onSubmit(event) {
     event.preventDefault();
     // 禁止使用者在進行期間點選其他的按鈕
-    //disableInteraction();
+    disableInteraction();
     if (confirm("是否確認要訂購並付款？")){
          // 取得 TapPay Fields 的 status
         const tappayStatus = TPDirect.card.getTappayFieldsStatus();
@@ -141,7 +131,7 @@ async function onSubmit(event) {
         if (tappayStatus.canGetPrime === false) {
             // alert('can not get prime');
             alert('信用卡資訊有誤，請確認!');
-            //enableInteraction();
+            enableInteraction();
             return;
         }
         // Get prime and fetch service
@@ -149,7 +139,7 @@ async function onSubmit(event) {
             if (result.status !== 0) {
                 //alert('get prime error ' + result.msg); 
                 alert('信用卡資訊有誤，請確認!' + result.msg);
-                //enableInteraction();
+                enableInteraction();
                 return;
             }
             let prime = result.card.prime;
@@ -207,13 +197,15 @@ async function onSubmit(event) {
             else{
                 // console.log("Result: ", getOrdersResult);
                 alert("付款成功！")
+                enableInteraction();
                 // deleteFetch();
                 window.location.href = `/thankyou?number=${getOrdersResult.data.number}`;
             }
+            enableInteraction();
         });
     }
     else{
-        //enableInteraction();
+        enableInteraction();
         return;
     }
 }
@@ -221,7 +213,7 @@ async function onSubmit(event) {
 // async function confirmAndPay(){
 //     if (confirm("是否確認要訂購並付款？")){
 //         token = localStorage.getItem('token');
-//         let response = await fetch('http://127.0.0.1:8000/api/orders', {
+//         let response = await fetch('http://54.79.121.157:8000/api/orders', {
 //             method: 'POST',
 //             headers:{
 //                 'Content-Type': 'application/json',
@@ -247,7 +239,7 @@ async function onSubmit(event) {
 // async function getUserData() { 
 //     try {
 //         let token = localStorage.getItem('token');
-//         let response = await fetch('http://127.0.0.1:8000/api/user/auth', {
+//         let response = await fetch('http://54.79.121.157:8000/api/user/auth', {
 //             method: 'GET',
 //             headers: {
 //                 'Content-Type': 'application/json',
@@ -279,7 +271,7 @@ async function onSubmit(event) {
 
 // async function getUserBookingData() { 
 //     let token = localStorage.getItem('token');
-//     let response = await fetch('http://127.0.0.1:8000/api/booking', {
+//     let response = await fetch('http://54.79.121.157:8000/api/booking', {
 //         method: 'GET',
 //         headers: {
 //             'Content-Type': 'application/json',
