@@ -44,7 +44,7 @@ function EditUserEmail() {
 async function saveEmail(newEmail) {
     if (validateEmail(newEmail)) {
         let token = localStorage.getItem('token');
-        let response = await fetch('http://54.79.121.157:8000/api/user/edit', {
+        let response = await fetch('https://tdt-tw.online/api/user/edit', {
             method: 'POST',
             headers:{
                 'Content-Type': 'application/json',
@@ -120,7 +120,7 @@ async function saveUserName(newName) {
     }
 
     let token = localStorage.getItem('token');
-    let response = await fetch('http://54.79.121.157:8000/api/user/edit', {
+    let response = await fetch('https://tdt-tw.online/api/user/edit', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -149,7 +149,7 @@ function cancelNameEdit(originalName) {
 
 async function getOderInfo(){
     let token = localStorage.getItem('token');
-    let response = await fetch('http://54.79.121.157:8000/api/orders', {
+    let response = await fetch('https://tdt-tw.online/api/orders', {
         method: 'GET',
         headers:{
             'Content-Type': 'application/json',
@@ -230,7 +230,7 @@ async function uploadImage(event) {
 
     let formData = new FormData();
     formData.append('file', file);
-    let response = await fetch('http://54.79.121.157:8000/api/upload', {
+    let response = await fetch('https://tdt-tw.online/api/upload', {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`

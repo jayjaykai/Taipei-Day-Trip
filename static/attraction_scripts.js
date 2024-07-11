@@ -18,7 +18,7 @@ function getQueryParams() {
 
 async function fetchAttractionDetails(id) {
     try{
-        let response = await fetch(`http://54.79.121.157:8000/api/attraction/${id}`);
+        let response = await fetch(`https://tdt-tw.online/api/attraction/${id}`);
         let result = await response.json();
         if (!response.ok) {
             console.error('HTTP error', response.status);
@@ -162,7 +162,7 @@ async function reserveTravel(){
             modal.showModal();
             return;
         }
-        // let authResponse = await fetch('http://54.79.121.157:8000/api/user/auth', {
+        // let authResponse = await fetch('https://tdt-tw.online/api/user/auth', {
         //     method: 'GET',
         //     headers: {
         //         'Content-Type': 'application/json',
@@ -187,7 +187,7 @@ async function reserveTravel(){
             tour_price: tourPrice
         };
 
-        let response = await fetch('http://54.79.121.157:8000/api/booking',{
+        let response = await fetch('https://tdt-tw.online/api/booking',{
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
