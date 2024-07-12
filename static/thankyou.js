@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 async function getOderInfo(){
-    let response = await fetch('https://tdt-tw.online/api/orders', {
+    let response = await fetch('http://54.79.121.157:8000/api/orders', {
         method: 'GET',
         headers:{
             'Content-Type': 'application/json',
