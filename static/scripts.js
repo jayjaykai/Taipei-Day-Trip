@@ -9,9 +9,9 @@ async function getData() {
     if(currentPage!= null){
         isLoading = true;
         if (currentKeyword) {
-            url = `http://54.79.121.157:8000/api/attractions?page=${currentPage}&keyword=${encodeURIComponent(currentKeyword)}`;
+            url = `/api/attractions?page=${currentPage}&keyword=${encodeURIComponent(currentKeyword)}`;
         } else {
-            url = `http://54.79.121.157:8000/api/attractions?page=${currentPage}`;
+            url = `/api/attractions?page=${currentPage}`;
         }
     
         let response = await fetch(url, {
@@ -87,7 +87,7 @@ function addContent(results) {
 }
 
 async function addMrtsList() {
-    let response = await fetch("http://54.79.121.157:8000/api/mrts", {
+    let response = await fetch("/api/mrts", {
         method: "GET",
         headers: {
             "Content-Type": "application/json"
@@ -121,7 +121,7 @@ async function addMrtsList() {
 
 async function getTopList() {
     try {
-        let response = await fetch("http://54.79.121.157:8000/api/top-attractions", {
+        let response = await fetch("/api/top-attractions", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json"
@@ -154,7 +154,7 @@ async function getTopList() {
 async function fetchAttractionsByKeyword(keyword) {
     currentPage = 0;
     currentKeyword = keyword;
-    let response = await fetch(`http://54.79.121.157:8000/api/attractions?page=0&keyword=${encodeURIComponent(keyword)}`, {
+    let response = await fetch(`/api/attractions?page=0&keyword=${encodeURIComponent(keyword)}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json"
