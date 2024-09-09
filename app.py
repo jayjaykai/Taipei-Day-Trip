@@ -56,35 +56,6 @@ SERVER_TYPE = os.getenv("SERVER_TYPE")
 # Redis
 Cache.redis_client = Cache.create_redis_client() 
 
-# print("TAPPAY_API_URL", os.getenv("TAPPAY_API_URL"))
-
-# # Redis
-# redis_host = os.getenv("REDIS_HOST", "localhost")
-# redis_port = int(os.getenv("REDIS_PORT", 6379))
-# redis_password = os.getenv("REDIS_PASSWORD", None)
-# redis_client = None
-# # Connect to Redis server
-# def create_redis_client():
-#     try:
-#         client = redis.StrictRedis(host=redis_host, port=redis_port, password=redis_password, decode_responses=True)
-#         client.ping()
-#         print("Redis client done!")
-#         return client
-#     except redis.ConnectionError:
-#         print("Redis is None!")
-#         return None
-# redis_client=create_redis_client()
-# def is_redis_available():
-#     global redis_client
-#     if redis_client is None:
-#         return False
-#     try:
-#         redis_client.ping()
-#         return True
-#     except redis.ConnectionError:
-#         redis_client = None
-#         return False
-
 # JWT setting
 SECRET_KEY = "sfegrehrtwerwet54h5jtyfgdfgergerg"
 ALGORITHM = "HS256"
