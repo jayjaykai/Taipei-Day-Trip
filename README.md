@@ -47,7 +47,7 @@ Test card：4242-4242-4242-4242 | 07/25 | CVV 123
 * **特定景點頁面**
 ![][spot]
 
-[attraction]:./readme/spot.png
+[spot]:./readme/spot.png
 
 * **預定行程&信用卡資訊頁面**
 ![][booking]
