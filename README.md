@@ -1,7 +1,7 @@
 # Taiper-Day-Trip
 > Taipei-Day-Trip is an **e-commerce travel website** developed with a **front-end** and **back-end** separation architecture. It integrates with a Restful API and fetches approximately 50 spot data provided by the Taipei City Government.
 
-- Utilize **RESTful API** communication to connect frontend to backend.
+- Utilize **RESTful API** standards to connect frontend to backend.
 - Authenticate users using JWT (JSON Web Token) for secure identity validation.
 - Build the website with **RWD (Responsive Web Design)** to ensure compatibility across multiple devices.
 - Offer a member page where users can upload a profile picture, modify their username and email, and review their order history.
